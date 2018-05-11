@@ -344,6 +344,9 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 0
 	ModifyControl chkShowLineDir disable= !isTab0 // hide if not Tab 0
 	
+	ModifyControl buttonDrawPattern disable= !isTab0 // hide if not Tab 0	
+	ModifyControl buttonAppendPattern disable= !isTab0 // hide if not Tab 0	
+	
 		
 	//Tab 1: Text:
 	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
@@ -352,10 +355,10 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
-	//Tab 2: Layers 1:
-	ModifyControl buttonDrawPattern disable= isTab2 // hide if not Tab 2	
-	ModifyControl buttonAppendPattern disable= isTab2 // hide if not Tab 2	
+	ModifyControl buttonDrawPattern disable= !isTab1 // hide if not Tab 1	
+	ModifyControl buttonAppendPattern disable= !isTab1 // hide if not Tab 1	
 	
+	//Tab 2: Layers 1:
 	ModifyControl allvisiblecheck disable= !isTab2 // hide if not Tab 2	
 	ModifyControl allselectcheck disable= !isTab2 // hide if not Tab 2	
 	
@@ -2287,6 +2290,8 @@ Function makeArray(ctrlname) : ButtonControl
 	// 3. Set up a new wave for the array.
 	Make/O/N=(numpnts(XLitho) * gXCount * gYCount) XWave
 	Make/O/N=(numpnts(XLitho) * gXCount * gYCount) YWave
+	
+	backupState()
 
 	// 4. Insert stuff into larger arrays
 	Variable i, j, k;

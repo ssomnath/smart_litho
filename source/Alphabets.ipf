@@ -28,1269 +28,1569 @@ Function drawAlphabet(alphabet, xstart, ystart, height, width)
 	// Create X Y Litho size depending on number of lines that are
 	// to be drawn
 
-	Variable numlines = 0	
+	Variable numlines = 0
 
 	if(cmpstr(alphabet,"A") == 0)
-		numlines = 8
-		Make/O/N=(numlines) XAlpha, YAlpha
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
 
-		// Line 0
+		// Line 1
 		XAlpha[0] = Xpoints[0]
 		YAlpha[0] = Ypoints[0]
 		XAlpha[1] = Xpoints[2]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[3]
-		XAlpha[6] = Xpoints[3]
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[1]
 		YAlpha[6] = Ypoints[3]
-		XAlpha[7] = nan
-		YAlpha[7] = nan
-		
-	elseif(cmpstr(alphabet,"B") == 0)
-		numlines = 22
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[7] = Xpoints[3]
+		YAlpha[7] = Ypoints[3]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"B") == 0)
+		numlines = 10
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[0]
 		YAlpha[0] = Ypoints[0]
 		XAlpha[1] = Xpoints[0]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
 		XAlpha[4] = Xpoints[3]
 		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[5]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[5]
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[6]
 		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[4]
+		YAlpha[7] = Ypoints[5]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[4]
-		XAlpha[9] = Xpoints[3]
-		YAlpha[9] = Ypoints[3]
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[5]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[4]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 		// Line 5
-		XAlpha[10] = Xpoints[3]
-		YAlpha[10] = Ypoints[3]
-		XAlpha[11] = Xpoints[0]
-		YAlpha[11] = Ypoints[3]
-		XAlpha[12] = nan
-		YAlpha[12] = nan
-		// Line 6
+		XAlpha[12] = Xpoints[4]
+		YAlpha[12] = Ypoints[4]
 		XAlpha[13] = Xpoints[3]
 		YAlpha[13] = Ypoints[3]
-		XAlpha[14] = Xpoints[4]
-		YAlpha[14] = Ypoints[2]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[3]
+		YAlpha[15] = Ypoints[3]
+		XAlpha[16] = Xpoints[0]
+		YAlpha[16] = Ypoints[3]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
 		// Line 7
-		XAlpha[15] = Xpoints[4]
-		YAlpha[15] = Ypoints[2]
-		XAlpha[16] = Xpoints[4]
-		YAlpha[16] = Ypoints[1]
-		// Line 8
-		XAlpha[17] = Xpoints[4]
-		YAlpha[17] = Ypoints[1]
 		XAlpha[18] = Xpoints[3]
-		YAlpha[18] = Ypoints[0]
+		YAlpha[18] = Ypoints[3]
+		XAlpha[19] = Xpoints[4]
+		YAlpha[19] = Ypoints[2]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[4]
+		YAlpha[21] = Ypoints[2]
+		XAlpha[22] = Xpoints[4]
+		YAlpha[22] = Ypoints[1]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
 		// Line 9
-		XAlpha[19] = Xpoints[3]
-		YAlpha[19] = Ypoints[0]
-		XAlpha[20] = Xpoints[0]
-		YAlpha[20] = Ypoints[0]
-		XAlpha[21] = nan
-		YAlpha[21] = nan
-		
-	elseif(cmpstr(alphabet,"C") == 0)
-		numlines = 15
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[24] = Xpoints[4]
+		YAlpha[24] = Ypoints[1]
+		XAlpha[25] = Xpoints[3]
+		YAlpha[25] = Ypoints[0]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+		// Line 10
+		XAlpha[27] = Xpoints[3]
+		YAlpha[27] = Ypoints[0]
+		XAlpha[28] = Xpoints[0]
+		YAlpha[28] = Ypoints[0]
+		XAlpha[29] = nan
+		YAlpha[29] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"C") == 0)
+		numlines = 7
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[4]
 		YAlpha[0] = Ypoints[1]
 		XAlpha[1] = Xpoints[3]
 		YAlpha[1] = Ypoints[0]
-		// Line 1
-		XAlpha[2] = Xpoints[3]
-		YAlpha[2] = Ypoints[0]
-		XAlpha[3] = Xpoints[1]
-		YAlpha[3] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[3]
+		YAlpha[3] = Ypoints[0]
 		XAlpha[4] = Xpoints[1]
 		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[1]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
-		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[1]
+		XAlpha[6] = Xpoints[1]
+		YAlpha[6] = Ypoints[0]
 		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[5]
+		YAlpha[7] = Ypoints[1]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[5]
-		XAlpha[9] = Xpoints[1]
-		YAlpha[9] = Ypoints[6]
+		XAlpha[9] = Xpoints[0]
+		YAlpha[9] = Ypoints[1]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[5]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 		// Line 5
-		XAlpha[10] = Xpoints[1]
-		YAlpha[10] = Ypoints[6]
-		XAlpha[11] = Xpoints[3]
-		YAlpha[11] = Ypoints[6]
-		// Line 6
-		XAlpha[12] = Xpoints[3]
-		YAlpha[12] = Ypoints[6]
-		XAlpha[13] = Xpoints[4]
-		YAlpha[13] = Ypoints[5]
+		XAlpha[12] = Xpoints[0]
+		YAlpha[12] = Ypoints[5]
+		XAlpha[13] = Xpoints[1]
+		YAlpha[13] = Ypoints[6]
 		XAlpha[14] = nan
 		YAlpha[14] = nan
-		
-	elseif(cmpstr(alphabet,"D") == 0)
-		numlines = 13
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[3]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[3]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[5]
-		// Line 2
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[5]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[1]
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[1]
-		XAlpha[7] = Xpoints[3]
-		YAlpha[7] = Ypoints[0]
-		// Line 4
-		XAlpha[8] = Xpoints[3]
-		YAlpha[8] = Ypoints[0]
-		XAlpha[9] = Xpoints[0]
-		YAlpha[9] = Ypoints[0]
-		// Line 5
-		XAlpha[10] = Xpoints[0]
-		YAlpha[10] = Ypoints[0]
-		XAlpha[11] = Xpoints[0]
-		YAlpha[11] = Ypoints[6]
-		XAlpha[12] = nan
-		YAlpha[12] = nan
-		
-	elseif(cmpstr(alphabet,"E") == 0)
-		numlines = 10
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[4]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[0]
-		XAlpha[6] = nan
-		YAlpha[6] = nan
-		// Line 3
-		XAlpha[7] = Xpoints[2]
-		YAlpha[7] = Ypoints[3]
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[3]
-		XAlpha[9] = nan
-		YAlpha[9] = nan
-		
-	elseif(cmpstr(alphabet,"F") == 0)
-		numlines = 8
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[4]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		// Line 2
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[3]
-		XAlpha[6] = Xpoints[2]
-		YAlpha[6] = Ypoints[3]
-		XAlpha[7] = nan
-		YAlpha[7] = nan
-		
-	elseif(cmpstr(alphabet,"G") == 0)
-		numlines = 21
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[2]
-		YAlpha[0] = Ypoints[2]
-		XAlpha[1] = Xpoints[2]
-		YAlpha[1] = Ypoints[3]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[3]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[3]
-		// Line 2
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[3]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[1]
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[1]
-		XAlpha[7] = Xpoints[3]
-		YAlpha[7] = Ypoints[0]
-		// Line 4
-		XAlpha[8] = Xpoints[3]
-		YAlpha[8] = Ypoints[0]
-		XAlpha[9] = Xpoints[1]
-		YAlpha[9] = Ypoints[0]
-		// Line 5
-		XAlpha[10] = Xpoints[1]
-		YAlpha[10] = Ypoints[0]
-		XAlpha[11] = Xpoints[0]
-		YAlpha[11] = Ypoints[1]
 		// Line 6
-		XAlpha[12] = Xpoints[0]
-		YAlpha[12] = Ypoints[1]
-		XAlpha[13] = Xpoints[0]
-		YAlpha[13] = Ypoints[5]
-		// Line 7
-		XAlpha[14] = Xpoints[0]
-		YAlpha[14] = Ypoints[5]
 		XAlpha[15] = Xpoints[1]
 		YAlpha[15] = Ypoints[6]
-		// Line 8
-		XAlpha[16] = Xpoints[1]
+		XAlpha[16] = Xpoints[3]
 		YAlpha[16] = Ypoints[6]
-		XAlpha[17] = Xpoints[3]
-		YAlpha[17] = Ypoints[6]
-		// Line 9
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
 		XAlpha[18] = Xpoints[3]
 		YAlpha[18] = Ypoints[6]
 		XAlpha[19] = Xpoints[4]
 		YAlpha[19] = Ypoints[5]
 		XAlpha[20] = nan
 		YAlpha[20] = nan
-		
-	elseif(cmpstr(alphabet,"H") == 0)
-		numlines = 9
-		Make/O/N=(numlines) XAlpha, YAlpha
 
-		// Line 0
+	elseif(cmpstr(alphabet,"D") == 0)
+		numlines = 6
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[0]
 		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[0]
-		XAlpha[2] = nan
-		YAlpha[2] = nan
-		// Line 1
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[3]
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[3]
-		XAlpha[5] = nan
-		YAlpha[5] = nan
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[6]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[0]
-		XAlpha[8] = nan
-		YAlpha[8] = nan
-		
-	elseif(cmpstr(alphabet,"I") == 0)
-		numlines = 7
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[0]
-		XAlpha[6] = nan
-		YAlpha[6] = nan
-		
-	elseif(cmpstr(alphabet,"J") == 0)
-		numlines = 9
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[1]
-		// Line 2
-		XAlpha[4] = Xpoints[2]
-		YAlpha[4] = Ypoints[1]
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[1]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[1]
-		XAlpha[8] = nan
-		YAlpha[8] = nan
-		
-	elseif(cmpstr(alphabet,"K") == 0)
-		numlines = 10
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[0]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[3]
-		XAlpha[3] = Xpoints[1]
-		YAlpha[3] = Ypoints[3]
-		// Line 2
-		XAlpha[4] = Xpoints[1]
-		YAlpha[4] = Ypoints[3]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[6]
-		XAlpha[6] = nan
-		YAlpha[6] = nan
-		// Line 3
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[0]
-		XAlpha[8] = Xpoints[1]
-		YAlpha[8] = Ypoints[3]
-		XAlpha[9] = nan
-		YAlpha[9] = nan
-		
-	elseif(cmpstr(alphabet,"L") == 0)
-		numlines = 5
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[0]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[0]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		
-	elseif(cmpstr(alphabet,"M") == 0)
-		numlines = 9
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[0]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[3]
-		// Line 2
-		XAlpha[4] = Xpoints[2]
-		YAlpha[4] = Ypoints[3]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[6]
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[6]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[0]
-		XAlpha[8] = nan
-		YAlpha[8] = nan
-		
-	elseif(cmpstr(alphabet,"N") == 0)
-		numlines = 7
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[0]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[6]
-		XAlpha[6] = nan
-		YAlpha[6] = nan
-		
-	elseif(cmpstr(alphabet,"O") == 0)
-		numlines = 17
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[4]
-		YAlpha[0] = Ypoints[5]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[1]
-		// Line 1
-		XAlpha[2] = Xpoints[4]
-		YAlpha[2] = Ypoints[1]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[3]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[1]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[1]
-		// Line 4
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[1]
-		XAlpha[9] = Xpoints[0]
-		YAlpha[9] = Ypoints[5]
-		// Line 5
-		XAlpha[10] = Xpoints[0]
-		YAlpha[10] = Ypoints[5]
-		XAlpha[11] = Xpoints[1]
-		YAlpha[11] = Ypoints[6]
-		// Line 6
-		XAlpha[12] = Xpoints[1]
-		YAlpha[12] = Ypoints[6]
-		XAlpha[13] = Xpoints[3]
-		YAlpha[13] = Ypoints[6]
-		// Line 7
-		XAlpha[14] = Xpoints[3]
-		YAlpha[14] = Ypoints[6]
-		XAlpha[15] = Xpoints[4]
-		YAlpha[15] = Ypoints[5]
-		XAlpha[16] = nan
-		YAlpha[16] = nan
-		
-	elseif(cmpstr(alphabet,"P") == 0)
-		numlines = 13
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[0]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[6]
-		// Line 2
-		XAlpha[4] = Xpoints[3]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[5]
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[5]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[4]
-		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[4]
-		XAlpha[9] = Xpoints[3]
-		YAlpha[9] = Ypoints[3]
-		// Line 5
-		XAlpha[10] = Xpoints[3]
-		YAlpha[10] = Ypoints[3]
-		XAlpha[11] = Xpoints[0]
-		YAlpha[11] = Ypoints[3]
-		XAlpha[12] = nan
-		YAlpha[12] = nan
-		
-	elseif(cmpstr(alphabet,"Q") == 0)
-		numlines = 20
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[4]
-		YAlpha[0] = Ypoints[5]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[1]
-		// Line 1
-		XAlpha[2] = Xpoints[4]
-		YAlpha[2] = Ypoints[1]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[3]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[1]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[1]
-		// Line 4
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[1]
-		XAlpha[9] = Xpoints[0]
-		YAlpha[9] = Ypoints[5]
-		// Line 5
-		XAlpha[10] = Xpoints[0]
-		YAlpha[10] = Ypoints[5]
-		XAlpha[11] = Xpoints[1]
-		YAlpha[11] = Ypoints[6]
-		// Line 6
-		XAlpha[12] = Xpoints[1]
-		YAlpha[12] = Ypoints[6]
-		XAlpha[13] = Xpoints[3]
-		YAlpha[13] = Ypoints[6]
-		// Line 7
-		XAlpha[14] = Xpoints[3]
-		YAlpha[14] = Ypoints[6]
-		XAlpha[15] = Xpoints[4]
-		YAlpha[15] = Ypoints[5]
-		XAlpha[16] = nan
-		YAlpha[16] = nan
-		// Line 8
-		XAlpha[17] = Xpoints[2]
-		YAlpha[17] = Ypoints[2]
-		XAlpha[18] = Xpoints[4]
-		YAlpha[18] = Ypoints[0]
-		XAlpha[19] = nan
-		YAlpha[19] = nan
-		
-	elseif(cmpstr(alphabet,"R") == 0)
-		numlines = 16
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[0]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[6]
-		// Line 2
-		XAlpha[4] = Xpoints[3]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[5]
-		// Line 3
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[5]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[4]
-		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[4]
-		XAlpha[9] = Xpoints[3]
-		YAlpha[9] = Ypoints[3]
-		// Line 5
-		XAlpha[10] = Xpoints[3]
-		YAlpha[10] = Ypoints[3]
-		XAlpha[11] = Xpoints[0]
-		YAlpha[11] = Ypoints[3]
-		XAlpha[12] = nan
-		YAlpha[12] = nan
-		// Line 6
-		XAlpha[13] = Xpoints[1]
-		YAlpha[13] = Ypoints[3]
-		XAlpha[14] = Xpoints[4]
-		YAlpha[14] = Ypoints[0]
-		XAlpha[15] = nan
-		YAlpha[15] = nan
-		
-	elseif(cmpstr(alphabet,"S") == 0)
-		numlines = 23
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[4]
-		YAlpha[0] = Ypoints[5]
 		XAlpha[1] = Xpoints[3]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[3]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[1]
-		YAlpha[3] = Ypoints[6]
-		// Line 2
-		XAlpha[4] = Xpoints[1]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[5]
-		// Line 3
-		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[5]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[4]
-		// Line 4
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[4]
-		XAlpha[9] = Xpoints[1]
-		YAlpha[9] = Ypoints[3]
-		// Line 5
-		XAlpha[10] = Xpoints[1]
-		YAlpha[10] = Ypoints[3]
-		XAlpha[11] = Xpoints[3]
-		YAlpha[11] = Ypoints[3]
-		// Line 6
-		XAlpha[12] = Xpoints[3]
-		YAlpha[12] = Ypoints[3]
-		XAlpha[13] = Xpoints[4]
-		YAlpha[13] = Ypoints[2]
-		// Line 7
-		XAlpha[14] = Xpoints[4]
-		YAlpha[14] = Ypoints[2]
-		XAlpha[15] = Xpoints[4]
-		YAlpha[15] = Ypoints[1]
-		// Line 8
-		XAlpha[16] = Xpoints[4]
-		YAlpha[16] = Ypoints[1]
-		XAlpha[17] = Xpoints[3]
-		YAlpha[17] = Ypoints[0]
-		// Line 9
-		XAlpha[18] = Xpoints[3]
-		YAlpha[18] = Ypoints[0]
-		XAlpha[19] = Xpoints[1]
-		YAlpha[19] = Ypoints[0]
-		// Line 10
-		XAlpha[20] = Xpoints[1]
-		YAlpha[20] = Ypoints[0]
-		XAlpha[21] = Xpoints[0]
-		YAlpha[21] = Ypoints[1]
-		XAlpha[22] = nan
-		YAlpha[22] = nan
-		
-	elseif(cmpstr(alphabet,"T") == 0)
-		numlines = 5
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		
-	elseif(cmpstr(alphabet,"U") == 0)
-		numlines = 11
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[1]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[1]
-		XAlpha[3] = Xpoints[1]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[1]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[3]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[3]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[1]
-		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[1]
-		XAlpha[9] = Xpoints[4]
-		YAlpha[9] = Ypoints[6]
-		XAlpha[10] = nan
-		YAlpha[10] = nan
-		
-	elseif(cmpstr(alphabet,"V") == 0)
-		numlines = 5
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[2]
-		YAlpha[1] = Ypoints[0]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[0]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[6]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		
-	elseif(cmpstr(alphabet,"W") == 0)
-		numlines = 9
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[1]
-		YAlpha[1] = Ypoints[0]
-		// Line 1
-		XAlpha[2] = Xpoints[1]
-		YAlpha[2] = Ypoints[0]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[2]
-		// Line 2
-		XAlpha[4] = Xpoints[2]
-		YAlpha[4] = Ypoints[2]
-		XAlpha[5] = Xpoints[3]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[3]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[6]
-		XAlpha[8] = nan
-		YAlpha[8] = nan
-		
-	elseif(cmpstr(alphabet,"X") == 0)
-		numlines = 6
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[4]
-		YAlpha[1] = Ypoints[0]
 		XAlpha[2] = nan
 		YAlpha[2] = nan
-		// Line 1
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = nan
-		YAlpha[5] = nan
-		
-	elseif(cmpstr(alphabet,"Y") == 0)
-		numlines = 8
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[2]
-		YAlpha[0] = Ypoints[0]
-		XAlpha[1] = Xpoints[2]
-		YAlpha[1] = Ypoints[3]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[3]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[6]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
 		// Line 2
-		XAlpha[5] = Xpoints[2]
-		YAlpha[5] = Ypoints[3]
-		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[6]
-		XAlpha[7] = nan
-		YAlpha[7] = nan
-		
-	elseif(cmpstr(alphabet,"Z") == 0)
-		numlines = 11
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[5]
-		XAlpha[1] = Xpoints[1]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[1]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[6]
-		// Line 2
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[3]
-		YAlpha[7] = Ypoints[0]
-		// Line 4
-		XAlpha[8] = Xpoints[3]
-		YAlpha[8] = Ypoints[0]
-		XAlpha[9] = Xpoints[4]
-		YAlpha[9] = Ypoints[1]
-		XAlpha[10] = nan
-		YAlpha[10] = nan
-		
-	elseif(cmpstr(alphabet,"1") == 0)
-		numlines = 7
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[1]
-		YAlpha[0] = Ypoints[5]
-		XAlpha[1] = Xpoints[2]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[2]
-		YAlpha[3] = Ypoints[0]
-		// Line 2
-		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[0]
-		XAlpha[6] = nan
-		YAlpha[6] = nan
-		
-	elseif(cmpstr(alphabet,"2") == 0)
-		numlines = 9
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[4]
-		XAlpha[1] = Xpoints[2]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[2]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[4]
-		// Line 2
-		XAlpha[4] = Xpoints[4]
-		YAlpha[4] = Ypoints[4]
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[0]
-		// Line 3
-		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[6]
-		XAlpha[8] = nan
-		YAlpha[8] = nan
-		
-	elseif(cmpstr(alphabet,"3") == 0)
-		numlines = 21
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[5]
-		XAlpha[1] = Xpoints[1]
-		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[1]
-		YAlpha[2] = Ypoints[6]
 		XAlpha[3] = Xpoints[3]
 		YAlpha[3] = Ypoints[6]
-		// Line 2
-		XAlpha[4] = Xpoints[3]
-		YAlpha[4] = Ypoints[6]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[5]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[5]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
 		XAlpha[6] = Xpoints[4]
 		YAlpha[6] = Ypoints[5]
 		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[4]
+		YAlpha[7] = Ypoints[1]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[4]
-		XAlpha[9] = Xpoints[2]
-		YAlpha[9] = Ypoints[3]
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[1]
+		XAlpha[10] = Xpoints[3]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 		// Line 5
-		XAlpha[10] = Xpoints[2]
-		YAlpha[10] = Ypoints[3]
-		XAlpha[11] = Xpoints[4]
-		YAlpha[11] = Ypoints[2]
+		XAlpha[12] = Xpoints[3]
+		YAlpha[12] = Ypoints[0]
+		XAlpha[13] = Xpoints[0]
+		YAlpha[13] = Ypoints[0]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
 		// Line 6
-		XAlpha[12] = Xpoints[4]
-		YAlpha[12] = Ypoints[2]
-		XAlpha[13] = Xpoints[4]
-		YAlpha[13] = Ypoints[1]
-		// Line 7
-		XAlpha[14] = Xpoints[4]
-		YAlpha[14] = Ypoints[1]
-		XAlpha[15] = Xpoints[3]
+		XAlpha[15] = Xpoints[0]
 		YAlpha[15] = Ypoints[0]
-		// Line 8
-		XAlpha[16] = Xpoints[3]
-		YAlpha[16] = Ypoints[0]
-		XAlpha[17] = Xpoints[1]
-		YAlpha[17] = Ypoints[0]
-		// Line 9
-		XAlpha[18] = Xpoints[1]
-		YAlpha[18] = Ypoints[0]
-		XAlpha[19] = Xpoints[0]
-		YAlpha[19] = Ypoints[1]
-		XAlpha[20] = nan
-		YAlpha[20] = nan
-		
-	elseif(cmpstr(alphabet,"4") == 0)
-		numlines = 8
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[16] = Xpoints[0]
+		YAlpha[16] = Ypoints[6]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
 
-		// Line 0
-		XAlpha[0] = Xpoints[0]
-		YAlpha[0] = Ypoints[6]
-		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[2]
+	elseif(cmpstr(alphabet,"E") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
 		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[2]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[2]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		// Line 2
-		XAlpha[5] = Xpoints[2]
-		YAlpha[5] = Ypoints[3]
-		XAlpha[6] = Xpoints[2]
-		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = nan
-		YAlpha[7] = nan
-		
-	elseif(cmpstr(alphabet,"5") == 0)
-		numlines = 17
-		Make/O/N=(numlines) XAlpha, YAlpha
-
-		// Line 0
 		XAlpha[0] = Xpoints[4]
 		YAlpha[0] = Ypoints[6]
 		XAlpha[1] = Xpoints[0]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[3]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
 		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[3]
-		XAlpha[5] = Xpoints[3]
-		YAlpha[5] = Ypoints[3]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
-		XAlpha[6] = Xpoints[3]
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[2]
+		YAlpha[9] = Ypoints[3]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[3]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"F") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[4]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[0]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[2]
+		YAlpha[7] = Ypoints[3]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"G") == 0)
+		numlines = 10
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[2]
+		YAlpha[0] = Ypoints[2]
+		XAlpha[1] = Xpoints[2]
+		YAlpha[1] = Ypoints[3]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[3]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[3]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[4]
 		YAlpha[6] = Ypoints[3]
 		XAlpha[7] = Xpoints[4]
-		YAlpha[7] = Ypoints[2]
+		YAlpha[7] = Ypoints[1]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[4]
-		YAlpha[8] = Ypoints[2]
 		XAlpha[9] = Xpoints[4]
 		YAlpha[9] = Ypoints[1]
+		XAlpha[10] = Xpoints[3]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 		// Line 5
-		XAlpha[10] = Xpoints[4]
-		YAlpha[10] = Ypoints[1]
-		XAlpha[11] = Xpoints[3]
-		YAlpha[11] = Ypoints[0]
-		// Line 6
 		XAlpha[12] = Xpoints[3]
 		YAlpha[12] = Ypoints[0]
 		XAlpha[13] = Xpoints[1]
 		YAlpha[13] = Ypoints[0]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[1]
+		YAlpha[15] = Ypoints[0]
+		XAlpha[16] = Xpoints[0]
+		YAlpha[16] = Ypoints[1]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
 		// Line 7
-		XAlpha[14] = Xpoints[1]
-		YAlpha[14] = Ypoints[0]
-		XAlpha[15] = Xpoints[0]
-		YAlpha[15] = Ypoints[1]
-		XAlpha[16] = nan
-		YAlpha[16] = nan
-		
-	elseif(cmpstr(alphabet,"6") == 0)
-		numlines = 17
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[18] = Xpoints[0]
+		YAlpha[18] = Ypoints[1]
+		XAlpha[19] = Xpoints[0]
+		YAlpha[19] = Ypoints[5]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[0]
+		YAlpha[21] = Ypoints[5]
+		XAlpha[22] = Xpoints[1]
+		YAlpha[22] = Ypoints[6]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+		// Line 9
+		XAlpha[24] = Xpoints[1]
+		YAlpha[24] = Ypoints[6]
+		XAlpha[25] = Xpoints[3]
+		YAlpha[25] = Ypoints[6]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+		// Line 10
+		XAlpha[27] = Xpoints[3]
+		YAlpha[27] = Ypoints[6]
+		XAlpha[28] = Xpoints[4]
+		YAlpha[28] = Ypoints[5]
+		XAlpha[29] = nan
+		YAlpha[29] = nan
 
-		// Line 0
-		XAlpha[0] = Xpoints[2]
+	elseif(cmpstr(alphabet,"H") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
 		YAlpha[0] = Ypoints[6]
 		XAlpha[1] = Xpoints[0]
-		YAlpha[1] = Ypoints[4]
-		// Line 1
-		XAlpha[2] = Xpoints[0]
-		YAlpha[2] = Ypoints[4]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[2]
+		YAlpha[1] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[3]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[3]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[4]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"I") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"J") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[1]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[2]
+		YAlpha[6] = Ypoints[1]
+		XAlpha[7] = Xpoints[1]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[1]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[1]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"K") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[3]
+		XAlpha[4] = Xpoints[1]
+		YAlpha[4] = Ypoints[3]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[1]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[6]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[1]
+		YAlpha[10] = Ypoints[3]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"L") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[1]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
 		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[2]
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[0]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[1]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"M") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		/// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[0]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[3]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[2]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[6]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[6]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"N") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[0]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[4]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[6]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"O") == 0)
+		numlines = 8
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[4]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[1]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[4]
+		YAlpha[3] = Ypoints[1]
+		XAlpha[4] = Xpoints[3]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[1]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[1]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[1]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[0]
+		YAlpha[12] = Ypoints[1]
+		XAlpha[13] = Xpoints[0]
+		YAlpha[13] = Ypoints[5]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[0]
+		YAlpha[15] = Ypoints[5]
+		XAlpha[16] = Xpoints[1]
+		YAlpha[16] = Ypoints[6]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[1]
+		YAlpha[18] = Ypoints[6]
+		XAlpha[19] = Xpoints[3]
+		YAlpha[19] = Ypoints[6]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[3]
+		YAlpha[21] = Ypoints[6]
+		XAlpha[22] = Xpoints[4]
+		YAlpha[22] = Ypoints[5]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+
+	elseif(cmpstr(alphabet,"P") == 0)
+		numlines = 6
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[0]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[3]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[5]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[5]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[4]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[4]
+		YAlpha[12] = Ypoints[4]
+		XAlpha[13] = Xpoints[3]
+		YAlpha[13] = Ypoints[3]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[3]
+		YAlpha[15] = Ypoints[3]
+		XAlpha[16] = Xpoints[0]
+		YAlpha[16] = Ypoints[3]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+
+	elseif(cmpstr(alphabet,"Q") == 0)
+		numlines = 9
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[4]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[1]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[4]
+		YAlpha[3] = Ypoints[1]
+		XAlpha[4] = Xpoints[3]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[1]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[1]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[1]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[0]
+		YAlpha[12] = Ypoints[1]
+		XAlpha[13] = Xpoints[0]
+		YAlpha[13] = Ypoints[5]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[0]
+		YAlpha[15] = Ypoints[5]
+		XAlpha[16] = Xpoints[1]
+		YAlpha[16] = Ypoints[6]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[1]
+		YAlpha[18] = Ypoints[6]
+		XAlpha[19] = Xpoints[3]
+		YAlpha[19] = Ypoints[6]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[3]
+		YAlpha[21] = Ypoints[6]
+		XAlpha[22] = Xpoints[4]
+		YAlpha[22] = Ypoints[5]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+		// Line 9
+		XAlpha[24] = Xpoints[2]
+		YAlpha[24] = Ypoints[2]
+		XAlpha[25] = Xpoints[4]
+		YAlpha[25] = Ypoints[0]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+
+	elseif(cmpstr(alphabet,"R") == 0)
+		numlines = 7
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[0]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[3]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[5]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[5]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[4]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[4]
+		YAlpha[12] = Ypoints[4]
+		XAlpha[13] = Xpoints[3]
+		YAlpha[13] = Ypoints[3]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[3]
+		YAlpha[15] = Ypoints[3]
+		XAlpha[16] = Xpoints[0]
+		YAlpha[16] = Ypoints[3]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[1]
+		YAlpha[18] = Ypoints[3]
+		XAlpha[19] = Xpoints[4]
+		YAlpha[19] = Ypoints[0]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+
+	elseif(cmpstr(alphabet,"S") == 0)
+		numlines = 11
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[4]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[3]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[3]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[1]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[1]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[0]
+		YAlpha[7] = Ypoints[5]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[0]
+		YAlpha[9] = Ypoints[5]
+		XAlpha[10] = Xpoints[0]
+		YAlpha[10] = Ypoints[4]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[0]
+		YAlpha[12] = Ypoints[4]
+		XAlpha[13] = Xpoints[1]
+		YAlpha[13] = Ypoints[3]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[1]
+		YAlpha[15] = Ypoints[3]
+		XAlpha[16] = Xpoints[3]
+		YAlpha[16] = Ypoints[3]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[3]
+		YAlpha[18] = Ypoints[3]
+		XAlpha[19] = Xpoints[4]
+		YAlpha[19] = Ypoints[2]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[4]
+		YAlpha[21] = Ypoints[2]
+		XAlpha[22] = Xpoints[4]
+		YAlpha[22] = Ypoints[1]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+		// Line 9
+		XAlpha[24] = Xpoints[4]
+		YAlpha[24] = Ypoints[1]
+		XAlpha[25] = Xpoints[3]
+		YAlpha[25] = Ypoints[0]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+		// Line 10
+		XAlpha[27] = Xpoints[3]
+		YAlpha[27] = Ypoints[0]
+		XAlpha[28] = Xpoints[1]
+		YAlpha[28] = Ypoints[0]
+		XAlpha[29] = nan
+		YAlpha[29] = nan
+		// Line 11
+		XAlpha[30] = Xpoints[1]
+		YAlpha[30] = Ypoints[0]
+		XAlpha[31] = Xpoints[0]
+		YAlpha[31] = Ypoints[1]
+		XAlpha[32] = nan
+		YAlpha[32] = nan
+
+	elseif(cmpstr(alphabet,"T") == 0)
+		numlines = 2
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+
+	elseif(cmpstr(alphabet,"U") == 0)
+		numlines = 5
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[1]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[1]
+		XAlpha[4] = Xpoints[1]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
 		XAlpha[6] = Xpoints[1]
 		YAlpha[6] = Ypoints[0]
 		XAlpha[7] = Xpoints[3]
 		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[3]
-		YAlpha[8] = Ypoints[0]
-		XAlpha[9] = Xpoints[4]
-		YAlpha[9] = Ypoints[1]
-		// Line 5
+		XAlpha[9] = Xpoints[3]
+		YAlpha[9] = Ypoints[0]
 		XAlpha[10] = Xpoints[4]
 		YAlpha[10] = Ypoints[1]
-		XAlpha[11] = Xpoints[4]
-		YAlpha[11] = Ypoints[2]
-		// Line 6
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
 		XAlpha[12] = Xpoints[4]
-		YAlpha[12] = Ypoints[2]
+		YAlpha[12] = Ypoints[1]
+		XAlpha[13] = Xpoints[4]
+		YAlpha[13] = Ypoints[6]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+
+	elseif(cmpstr(alphabet,"V") == 0)
+		numlines = 2
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[2]
+		YAlpha[1] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[0]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+
+	elseif(cmpstr(alphabet,"W") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[1]
+		YAlpha[1] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[1]
+		YAlpha[3] = Ypoints[0]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[2]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[2]
+		YAlpha[6] = Ypoints[2]
+		XAlpha[7] = Xpoints[3]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[3]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[6]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"X") == 0)
+		numlines = 2
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[4]
+		YAlpha[1] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[0]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+
+	elseif(cmpstr(alphabet,"Y") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[2]
+		YAlpha[0] = Ypoints[0]
+		XAlpha[1] = Xpoints[2]
+		YAlpha[1] = Ypoints[3]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[3]
+		XAlpha[4] = Xpoints[0]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[2]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[6]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"Z") == 0)
+		numlines = 5
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[1]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[1]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[4]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[0]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[0]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[3]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[3]
+		YAlpha[12] = Ypoints[0]
+		XAlpha[13] = Xpoints[4]
+		YAlpha[13] = Ypoints[1]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+
+	elseif(cmpstr(alphabet,"1") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[1]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[2]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[2]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[0]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"2") == 0)
+		numlines = 4
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[4]
+		XAlpha[1] = Xpoints[2]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[2]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[4]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[4]
+		YAlpha[6] = Ypoints[4]
+		XAlpha[7] = Xpoints[0]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[0]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[6]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+
+	elseif(cmpstr(alphabet,"3") == 0)
+		numlines = 10
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[5]
+		XAlpha[1] = Xpoints[1]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[1]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[3]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[3]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[5]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[5]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[4]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[4]
+		YAlpha[12] = Ypoints[4]
 		XAlpha[13] = Xpoints[2]
 		YAlpha[13] = Ypoints[3]
-		// Line 7
-		XAlpha[14] = Xpoints[2]
-		YAlpha[14] = Ypoints[3]
-		XAlpha[15] = Xpoints[0]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[2]
 		YAlpha[15] = Ypoints[3]
-		XAlpha[16] = nan
-		YAlpha[16] = nan
-		
-	elseif(cmpstr(alphabet,"7") == 0)
-		numlines = 5
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[16] = Xpoints[4]
+		YAlpha[16] = Ypoints[2]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[4]
+		YAlpha[18] = Ypoints[2]
+		XAlpha[19] = Xpoints[4]
+		YAlpha[19] = Ypoints[1]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[4]
+		YAlpha[21] = Ypoints[1]
+		XAlpha[22] = Xpoints[3]
+		YAlpha[22] = Ypoints[0]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+		// Line 9
+		XAlpha[24] = Xpoints[3]
+		YAlpha[24] = Ypoints[0]
+		XAlpha[25] = Xpoints[1]
+		YAlpha[25] = Ypoints[0]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+		// Line 10
+		XAlpha[27] = Xpoints[1]
+		YAlpha[27] = Ypoints[0]
+		XAlpha[28] = Xpoints[0]
+		YAlpha[28] = Ypoints[1]
+		XAlpha[29] = nan
+		YAlpha[29] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"4") == 0)
+		numlines = 3
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[0]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[2]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[2]
+		XAlpha[4] = Xpoints[4]
+		YAlpha[4] = Ypoints[2]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[2]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[2]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+
+	elseif(cmpstr(alphabet,"5") == 0)
+		numlines = 8
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[4]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[6]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[0]
+		YAlpha[4] = Ypoints[3]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[3]
+		XAlpha[7] = Xpoints[3]
+		YAlpha[7] = Ypoints[3]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[3]
+		YAlpha[9] = Ypoints[3]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[2]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[4]
+		YAlpha[12] = Ypoints[2]
+		XAlpha[13] = Xpoints[4]
+		YAlpha[13] = Ypoints[1]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[4]
+		YAlpha[15] = Ypoints[1]
+		XAlpha[16] = Xpoints[3]
+		YAlpha[16] = Ypoints[0]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[3]
+		YAlpha[18] = Ypoints[0]
+		XAlpha[19] = Xpoints[1]
+		YAlpha[19] = Ypoints[0]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[1]
+		YAlpha[21] = Ypoints[0]
+		XAlpha[22] = Xpoints[0]
+		YAlpha[22] = Ypoints[1]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+
+	elseif(cmpstr(alphabet,"6") == 0)
+		numlines = 8
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
+		XAlpha[0] = Xpoints[2]
+		YAlpha[0] = Ypoints[6]
+		XAlpha[1] = Xpoints[0]
+		YAlpha[1] = Ypoints[4]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[4]
+		XAlpha[4] = Xpoints[0]
+		YAlpha[4] = Ypoints[2]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
+		// Line 3
+		XAlpha[6] = Xpoints[0]
+		YAlpha[6] = Ypoints[2]
+		XAlpha[7] = Xpoints[1]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
+		// Line 4
+		XAlpha[9] = Xpoints[1]
+		YAlpha[9] = Ypoints[0]
+		XAlpha[10] = Xpoints[3]
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[3]
+		YAlpha[12] = Ypoints[0]
+		XAlpha[13] = Xpoints[4]
+		YAlpha[13] = Ypoints[1]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
+		// Line 6
+		XAlpha[15] = Xpoints[4]
+		YAlpha[15] = Ypoints[1]
+		XAlpha[16] = Xpoints[4]
+		YAlpha[16] = Ypoints[2]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[4]
+		YAlpha[18] = Ypoints[2]
+		XAlpha[19] = Xpoints[2]
+		YAlpha[19] = Ypoints[3]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[2]
+		YAlpha[21] = Ypoints[3]
+		XAlpha[22] = Xpoints[0]
+		YAlpha[22] = Ypoints[3]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+
+	elseif(cmpstr(alphabet,"7") == 0)
+		numlines = 2
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[0]
 		YAlpha[0] = Ypoints[6]
 		XAlpha[1] = Xpoints[4]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[4]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[0]
-		YAlpha[3] = Ypoints[0]
-		XAlpha[4] = nan
-		YAlpha[4] = nan
-		
-	elseif(cmpstr(alphabet,"8") == 0)
-		numlines = 32
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
+		XAlpha[3] = Xpoints[4]
+		YAlpha[3] = Ypoints[6]
+		XAlpha[4] = Xpoints[0]
+		YAlpha[4] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"8") == 0)
+		numlines = 15
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[1]
 		YAlpha[0] = Ypoints[6]
 		XAlpha[1] = Xpoints[3]
 		YAlpha[1] = Ypoints[6]
-		// Line 1
-		XAlpha[2] = Xpoints[3]
-		YAlpha[2] = Ypoints[6]
-		XAlpha[3] = Xpoints[4]
-		YAlpha[3] = Ypoints[5]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[3]
+		YAlpha[3] = Ypoints[6]
 		XAlpha[4] = Xpoints[4]
 		YAlpha[4] = Ypoints[5]
-		XAlpha[5] = Xpoints[4]
-		YAlpha[5] = Ypoints[4]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
 		XAlpha[6] = Xpoints[4]
-		YAlpha[6] = Ypoints[4]
-		XAlpha[7] = Xpoints[3]
-		YAlpha[7] = Ypoints[3]
+		YAlpha[6] = Ypoints[5]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[4]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[3]
-		YAlpha[8] = Ypoints[3]
 		XAlpha[9] = Xpoints[4]
-		YAlpha[9] = Ypoints[2]
+		YAlpha[9] = Ypoints[4]
+		XAlpha[10] = Xpoints[3]
+		YAlpha[10] = Ypoints[3]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 		// Line 5
-		XAlpha[10] = Xpoints[4]
-		YAlpha[10] = Ypoints[2]
-		XAlpha[11] = Xpoints[4]
-		YAlpha[11] = Ypoints[1]
+		XAlpha[12] = Xpoints[3]
+		YAlpha[12] = Ypoints[3]
+		XAlpha[13] = Xpoints[4]
+		YAlpha[13] = Ypoints[2]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
 		// Line 6
-		XAlpha[12] = Xpoints[4]
-		YAlpha[12] = Ypoints[1]
-		XAlpha[13] = Xpoints[3]
-		YAlpha[13] = Ypoints[0]
+		XAlpha[15] = Xpoints[4]
+		YAlpha[15] = Ypoints[2]
+		XAlpha[16] = Xpoints[4]
+		YAlpha[16] = Ypoints[1]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
 		// Line 7
-		XAlpha[14] = Xpoints[3]
-		YAlpha[14] = Ypoints[0]
-		XAlpha[15] = Xpoints[1]
-		YAlpha[15] = Ypoints[0]
-		// Line 8
-		XAlpha[16] = Xpoints[1]
-		YAlpha[16] = Ypoints[0]
-		XAlpha[17] = Xpoints[0]
-		YAlpha[17] = Ypoints[1]
-		// Line 9
-		XAlpha[18] = Xpoints[0]
+		XAlpha[18] = Xpoints[4]
 		YAlpha[18] = Ypoints[1]
-		XAlpha[19] = Xpoints[0]
-		YAlpha[19] = Ypoints[2]
-		// Line 10
-		XAlpha[20] = Xpoints[0]
-		YAlpha[20] = Ypoints[2]
-		XAlpha[21] = Xpoints[1]
-		YAlpha[21] = Ypoints[3]
-		// Line 11
+		XAlpha[19] = Xpoints[3]
+		YAlpha[19] = Ypoints[0]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[3]
+		YAlpha[21] = Ypoints[0]
 		XAlpha[22] = Xpoints[1]
-		YAlpha[22] = Ypoints[3]
-		XAlpha[23] = Xpoints[0]
-		YAlpha[23] = Ypoints[4]
-		// Line 12
-		XAlpha[24] = Xpoints[0]
-		YAlpha[24] = Ypoints[4]
+		YAlpha[22] = Ypoints[0]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
+		// Line 9
+		XAlpha[24] = Xpoints[1]
+		YAlpha[24] = Ypoints[0]
 		XAlpha[25] = Xpoints[0]
-		YAlpha[25] = Ypoints[5]
+		YAlpha[25] = Ypoints[1]
+		XAlpha[26] = nan
+		YAlpha[26] = nan
+		// Line 10
+		XAlpha[27] = Xpoints[0]
+		YAlpha[27] = Ypoints[1]
+		XAlpha[28] = Xpoints[0]
+		YAlpha[28] = Ypoints[2]
+		XAlpha[29] = nan
+		YAlpha[29] = nan
+		// Line 11
+		XAlpha[30] = Xpoints[0]
+		YAlpha[30] = Ypoints[2]
+		XAlpha[31] = Xpoints[1]
+		YAlpha[31] = Ypoints[3]
+		XAlpha[32] = nan
+		YAlpha[32] = nan
+		// Line 12
+		XAlpha[33] = Xpoints[1]
+		YAlpha[33] = Ypoints[3]
+		XAlpha[34] = Xpoints[0]
+		YAlpha[34] = Ypoints[4]
+		XAlpha[35] = nan
+		YAlpha[35] = nan
 		// Line 13
-		XAlpha[26] = Xpoints[0]
-		YAlpha[26] = Ypoints[5]
-		XAlpha[27] = Xpoints[1]
-		YAlpha[27] = Ypoints[6]
-		XAlpha[28] = nan
-		YAlpha[28] = nan
+		XAlpha[36] = Xpoints[0]
+		YAlpha[36] = Ypoints[4]
+		XAlpha[37] = Xpoints[0]
+		YAlpha[37] = Ypoints[5]
+		XAlpha[38] = nan
+		YAlpha[38] = nan
 		// Line 14
-		XAlpha[29] = Xpoints[1]
-		YAlpha[29] = Ypoints[3]
-		XAlpha[30] = Xpoints[3]
-		YAlpha[30] = Ypoints[3]
-		XAlpha[31] = nan
-		YAlpha[31] = nan
-		
-	elseif(cmpstr(alphabet,"9") == 0)
-		numlines = 13
-		Make/O/N=(numlines) XAlpha, YAlpha
+		XAlpha[39] = Xpoints[0]
+		YAlpha[39] = Ypoints[5]
+		XAlpha[40] = Xpoints[1]
+		YAlpha[40] = Ypoints[6]
+		XAlpha[41] = nan
+		YAlpha[41] = nan
+		// Line 15
+		XAlpha[42] = Xpoints[1]
+		YAlpha[42] = Ypoints[3]
+		XAlpha[43] = Xpoints[3]
+		YAlpha[43] = Ypoints[3]
+		XAlpha[44] = nan
+		YAlpha[44] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"9") == 0)
+		numlines = 6
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[4]
 		YAlpha[0] = Ypoints[3]
-		XAlpha[1] = Xpoints[1]
+		XAlpha[1] = Xpoints[0]
 		YAlpha[1] = Ypoints[3]
-		// Line 1
-		XAlpha[2] = Xpoints[1]
-		YAlpha[2] = Ypoints[3]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
+		// Line 2
 		XAlpha[3] = Xpoints[0]
 		YAlpha[3] = Ypoints[4]
-		// Line 2
 		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[4]
-		XAlpha[5] = Xpoints[0]
-		YAlpha[5] = Ypoints[5]
+		YAlpha[4] = Ypoints[6]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
 		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[5]
-		XAlpha[7] = Xpoints[1]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
 		YAlpha[7] = Ypoints[6]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[1]
-		YAlpha[8] = Ypoints[6]
 		XAlpha[9] = Xpoints[4]
 		YAlpha[9] = Ypoints[6]
-		// Line 5
 		XAlpha[10] = Xpoints[4]
-		YAlpha[10] = Ypoints[6]
-		XAlpha[11] = Xpoints[4]
-		YAlpha[11] = Ypoints[0]
-		XAlpha[12] = nan
-		YAlpha[12] = nan
-		
-	elseif(cmpstr(alphabet,"0") == 0)
-		numlines = 17
-		Make/O/N=(numlines) XAlpha, YAlpha
+		YAlpha[10] = Ypoints[0]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
 
-		// Line 0
+	elseif(cmpstr(alphabet,"0") == 0)
+		numlines = 8
+		Make/O/N=(numlines*3) XAlpha, YAlpha
+
+		// Line 1
 		XAlpha[0] = Xpoints[4]
 		YAlpha[0] = Ypoints[5]
 		XAlpha[1] = Xpoints[4]
 		YAlpha[1] = Ypoints[1]
-		// Line 1
-		XAlpha[2] = Xpoints[4]
-		YAlpha[2] = Ypoints[1]
-		XAlpha[3] = Xpoints[3]
-		YAlpha[3] = Ypoints[0]
+		XAlpha[2] = nan
+		YAlpha[2] = nan
 		// Line 2
+		XAlpha[3] = Xpoints[4]
+		YAlpha[3] = Ypoints[1]
 		XAlpha[4] = Xpoints[3]
 		YAlpha[4] = Ypoints[0]
-		XAlpha[5] = Xpoints[1]
-		YAlpha[5] = Ypoints[0]
+		XAlpha[5] = nan
+		YAlpha[5] = nan
 		// Line 3
-		XAlpha[6] = Xpoints[1]
+		XAlpha[6] = Xpoints[3]
 		YAlpha[6] = Ypoints[0]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[1]
+		XAlpha[7] = Xpoints[1]
+		YAlpha[7] = Ypoints[0]
+		XAlpha[8] = nan
+		YAlpha[8] = nan
 		// Line 4
-		XAlpha[8] = Xpoints[0]
-		YAlpha[8] = Ypoints[1]
-		XAlpha[9] = Xpoints[0]
-		YAlpha[9] = Ypoints[5]
-		// Line 5
+		XAlpha[9] = Xpoints[1]
+		YAlpha[9] = Ypoints[0]
 		XAlpha[10] = Xpoints[0]
-		YAlpha[10] = Ypoints[5]
-		XAlpha[11] = Xpoints[1]
-		YAlpha[11] = Ypoints[6]
+		YAlpha[10] = Ypoints[1]
+		XAlpha[11] = nan
+		YAlpha[11] = nan
+		// Line 5
+		XAlpha[12] = Xpoints[0]
+		YAlpha[12] = Ypoints[1]
+		XAlpha[13] = Xpoints[0]
+		YAlpha[13] = Ypoints[5]
+		XAlpha[14] = nan
+		YAlpha[14] = nan
 		// Line 6
-		XAlpha[12] = Xpoints[1]
-		YAlpha[12] = Ypoints[6]
-		XAlpha[13] = Xpoints[3]
-		YAlpha[13] = Ypoints[6]
-		// Line 7
-		XAlpha[14] = Xpoints[3]
-		YAlpha[14] = Ypoints[6]
-		XAlpha[15] = Xpoints[4]
+		XAlpha[15] = Xpoints[0]
 		YAlpha[15] = Ypoints[5]
-		XAlpha[16] = nan
-		YAlpha[16] = nan
+		XAlpha[16] = Xpoints[1]
+		YAlpha[16] = Ypoints[6]
+		XAlpha[17] = nan
+		YAlpha[17] = nan
+		// Line 7
+		XAlpha[18] = Xpoints[1]
+		YAlpha[18] = Ypoints[6]
+		XAlpha[19] = Xpoints[3]
+		YAlpha[19] = Ypoints[6]
+		XAlpha[20] = nan
+		YAlpha[20] = nan
+		// Line 8
+		XAlpha[21] = Xpoints[3]
+		YAlpha[21] = Ypoints[6]
+		XAlpha[22] = Xpoints[4]
+		YAlpha[22] = Ypoints[5]
+		XAlpha[23] = nan
+		YAlpha[23] = nan
 	endif
-end // End drawAlphabet
+
+	// Resetting the data folder
+	SetDataFolder dfsave
+				
+End // drawAlphabet
