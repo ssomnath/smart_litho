@@ -343,10 +343,7 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl dirpriority disable= !isTab0 // hide if not Tab 0
 	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 0
 	ModifyControl chkShowLineDir disable= !isTab0 // hide if not Tab 0
-	
-	ModifyControl buttonDrawPattern disable= !isTab0 // hide if not Tab 0	
-	ModifyControl buttonAppendPattern disable= !isTab0 // hide if not Tab 0	
-	
+		
 		
 	//Tab 1: Text:
 	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
@@ -355,8 +352,8 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
-	ModifyControl buttonDrawPattern disable= !isTab1 // hide if not Tab 1	
-	ModifyControl buttonAppendPattern disable= !isTab1 // hide if not Tab 1	
+	ModifyControl buttonDrawPattern disable= (!isTab0 && !isTab1)// hide if not Tab 0 or 1	
+	ModifyControl buttonAppendPattern disable= (!isTab0 && !isTab1) // hide if not Tab 1	
 	
 	//Tab 2: Layers 1:
 	ModifyControl allvisiblecheck disable= !isTab2 // hide if not Tab 2	
@@ -1462,7 +1459,7 @@ Function readWaves(filePointer,name)
 	
 	// storing the waves directly into the LithoWaves
 	String oldSaveFolder = GetDataFolder(1)
-	SetDataFolder root:packages:MFP3D:Litho:LithoWaves
+	SetDataFolder root:packages:MFP3D:Litho
 	
 	String str
 	//Ignore the first line - it has the names of the columns
@@ -1490,11 +1487,11 @@ Function readWaves(filePointer,name)
 	
 	Make /N=(wavesize) wave0
 	
-	Duplicate/O wave0, $("Y"+name), $("X"+name)
+	Duplicate/O wave0, $("YLitho"), $("XLitho")
 	
 	// Providing a handle now
-	Wave Xwave = $("X"+name)
-	Wave Ywave = $("Y"+name)
+	Wave Xwave = $("XLitho")
+	Wave Ywave = $("YLitho")
 	killwaves wave0
 	
 	// Adding the first two coordinates:
