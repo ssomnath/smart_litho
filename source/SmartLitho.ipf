@@ -1,8 +1,7 @@
 #pragma rtGlobals=1		// Use modern global access method.
 
 //Suhas Somnath, UIUC 2009
-// Last added - TDPN exact length constraints, disabled autoswap
-// Next - variable scansize
+// Last - variable scansize, handled non written waves XLitho..- null pointer exception, removed the layers panel
 
 Menu "Macros"
 	"Smart Litho", SmartLithoDriver()
@@ -21,24 +20,25 @@ Function SmartLithoDriver()
 	NewDataFolder/O/S root:packages:SmartLitho
 	
 	// Create global variables used by the control panel.
+	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
+	Variable scansize = mw[0]*1e+9
+	
 	Variable numlines = NumVarOrDefault(":gnumlines", 10)
 	Variable/G gnumlines = numlines
-	Variable linelength = NumVarOrDefault(":glinelength", 100)
+	Variable linelength = NumVarOrDefault(":glinelength", (scansize/4))
 	Variable/G glinelength = linelength
-	Variable linesp = NumVarOrDefault(":glinesp", 50)
+	Variable linesp = NumVarOrDefault(":glinesp", (scansize/10))
 	Variable/G glinesp = linesp
 	Variable lineangle = NumVarOrDefault(":glineangle", 90)
 	Variable/G glineangle = lineangle	
-	Variable Tbord = NumVarOrDefault(":gTbord", 10)
+	Variable Tbord = NumVarOrDefault(":gTbord", (scansize/20))
 	Variable/G gTbord = Tbord
-	Variable Bbord = NumVarOrDefault(":gBbord", 10)
+	Variable Bbord = NumVarOrDefault(":gBbord", (scansize/20))
 	Variable/G gBbord = Bbord
-	Variable Lbord = NumVarOrDefault(":gLbord", 10)
+	Variable Lbord = NumVarOrDefault(":gLbord", (scansize/20))
 	Variable/G gLbord = Lbord
-	Variable Rbord = NumVarOrDefault(":gRbord", 10)
+	Variable Rbord = NumVarOrDefault(":gRbord", (scansize/20))
 	Variable/G gRbord = Rbord
-	//Wave masterwave = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
-	//Variable/G gscansize = masterwave[0]
 	
 	// Create the control panel.
 	Execute "SmartLithoPanel()"
@@ -53,13 +53,16 @@ Window SmartLithoPanel(): Panel
 	NewPanel /K=1 /W=(485,145, 840,445) as "Smart Litho"
 	SetDrawLayer UserBack
 	
-	TabControl tabcont, tabLabel(0)="Layers", value=0
-	TabControl tabcont, tabLabel(1)="Lines"
-	TabControl tabcont, tabLabel(2)="More...", value=0
+	TabControl tabcont, tabLabel(0)="Lines"
+	TabControl tabcont, tabLabel(1)="More...", value=0
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
+	//print "scan size = " + num2str(scansize)
 	scansize = max(20000,scansize)
+	//resetting the scansize to the default size:
+	//root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0] = 20e-6
+	//print "scan size = " + num2str(scansize)
 	//Variable scansize = 20000// in nanometers
 	
 	//DrawText 17,52, "Line Parameters:"
@@ -90,7 +93,7 @@ Window SmartLithoPanel(): Panel
 	
 	DrawText 14,231, "Pattern Functions:"
 	
-	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw New", proc=drawFreshly
+	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw New", proc=drawNew
 	Button buttonUndo,pos={142,240},size={70,20},title="Undo", proc=undoLastPattern
 	Button buttonAppendPattern,pos={234,240},size={100,20},title="Append", proc=appendPattern
 	
@@ -106,31 +109,25 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	
 	Variable isTab0= tabNum==0
 	Variable isTab1= tabNum==1
-	Variable isTab2= tabNum==2
 	
 	//disable=0 means show, disable=1 means hide
 	
 	//more details - refer to 
 	// http://wavemetrics.net/doc/III-14 Control Panels.pdf
 	
-	//Tab 1: Lines
-	ModifyControl lineparams disable= !isTab1
-	ModifyControl bordparams disable= !isTab1
+	//Tab 0: Lines
+	ModifyControl lineparams disable= !isTab0
+	ModifyControl bordparams disable= !isTab0
 	
-	ModifyControl setvarnumlines disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarlinelength disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarlinespace disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarangle disable= !isTab1 // hide if not Tab 1
+	ModifyControl setvarnumlines disable= !isTab0 // hide if not Tab0
+	ModifyControl setvarlinelength disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarlinespace disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarangle disable= !isTab0 // hide if not Tab 0
 	
-	ModifyControl setvarLbord disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarRbord disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarTbord disable= !isTab1 // hide if not Tab 1
-	ModifyControl setvarBbord disable= !isTab1 // hide if not Tab 1
-	
-	//Tab 2:
-	//ModifyControl buttonDrawPattern disable= !isTab0 // hide if not Tab 0
-	//ModifyControl buttonClearPattern disable= !isTab0 // hide if not Tab 0
-	//ModifyControl buttonSavePattern disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarLbord disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarRbord disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarTbord disable= !isTab0 // hide if not Tab 0
+	ModifyControl setvarBbord disable= !isTab0 // hide if not Tab 0
 	
 	return 0
 End // TabProc
@@ -166,6 +163,13 @@ Function undoLastPattern(ctrlname) : ButtonControl
 	// Storing the old working folder:
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
+	
+	if( exists("XLitho") != 1 || exists("YLitho") != 1)
+		// If the litho was not performed at all such waves
+		// will not exist. Abort!!!
+		print "Error: Undo - Check parameters, especially wrt scansize"
+		return -1;
+	endif
 		
 	// Duplicate the MFP waves that are used for rendering:
 	// Will assume that the old_Litho waves exist becuase before any drawing / loading is
@@ -226,6 +230,13 @@ Function appendPattern(ctrlname) : ButtonControl
 	// Drawing this NEW pattern onto the home Litho waves.
 	// but NOT rendering it yet.
 	drawCurrentPattern()
+	
+	if( exists("XLitho") != 1 || exists("YLitho") != 1)
+		// If the litho was not performed at all such waves
+		// will not exist. Abort!!!
+		print "Error: Check parameters, especially wrt scansize"
+		return -1;
+	endif
 		
 	// Appending the waves:
 	appendWaves(root:packages:MFP3D:Litho:XLitho, XLitho,"appendedX")
@@ -281,13 +292,20 @@ Function appendWaves(wave0, wave1, outname)
 End
 
 
-Function drawFreshly(ctrlname) : ButtonControl
+Function drawNew(ctrlname) : ButtonControl
 	String ctrlname
 	
 	// backing up the current state of the MFP waves:
 	backupState()
 	
 	drawCurrentPattern()
+	
+	if( exists("XLitho") != 1 || exists("YLitho") != 1)
+		// If the litho was not performed at all such waves
+		// will not exist. Abort!!!
+		print "Error: Check parameters, especially wrt scansize"
+		return -1;
+	endif
 	
 	// Drawing completed by now:
 	// Duplicate the right waves that are used for rendering
