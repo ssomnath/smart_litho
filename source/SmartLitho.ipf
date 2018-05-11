@@ -49,6 +49,11 @@ Function SmartLithoDriver()
 	Variable/G gtextheight = textheight
 	Variable textwidth = NumVarOrDefault(":gtextwidth", (scansize/20))
 	Variable/G gtextwidth = textwidth
+
+	// Tab variables
+	// useful in figuring out the operation on which tab was called
+	Variable ChosenTab = NumVarOrDefault(":gChosenTab",0)
+	Variable/G gChosenTab = ChosenTab
 	
 	// Create the control panel.
 	Execute "SmartLithoPanel()"
@@ -64,7 +69,7 @@ Window SmartLithoPanel(): Panel
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Lines"
-	TabControl tabcont, tabLabel(1)="Text", value=0
+	TabControl tabcont, tabLabel(1)="Text", value=root:packages:SmartLitho:gChosenTab
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
@@ -106,7 +111,7 @@ Window SmartLithoPanel(): Panel
 	// Tab #1: Text:
 	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:", limits={0,0,0}, disable=2, noedit=1	
 	
-	SetVariable setvartext,pos={35,69},size={120,18},title="Text:"
+	SetVariable setvartext,pos={35,69},size={160,18},title="Text:"
 	SetVariable setvartext,value= root:packages:SmartLitho:gText,live= 1
 	
 	SetVariable setvartextht,pos={35,95},size={119,18},title="Height (nm)", limits={0,(1*scansize),1}
@@ -114,7 +119,7 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvartextwt,pos={211,95},size={116,18},title="Width (nm)", limits={0,(1*scansize),1}
 	SetVariable setvartextwt,value= root:packages:SmartLitho:gtextwidth,live= 1
 	
-	Button buttontext, pos={226,68}, size={100,20}, title = "Draw Text!", proc=drawString
+	//Button buttontext, pos={226,68}, size={100,20}, title = "Draw Text!", proc=drawString
 	
 	// Global buttons:
 	DrawText 14,231, "Pattern Functions:"
@@ -133,6 +138,17 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	String ctrlName
 	Variable tabNum
 	
+	// Setting the chosen tab to help in
+	// checking what tab's operation to perform
+	// when a button is clicked
+	
+	// Storing the old working folder:
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gChosenTab
+	gChosenTab = tabnum
+	SetDataFolder dfSave
+		
 	Variable isTab0= tabNum==0
 	Variable isTab1= tabNum==1
 	
@@ -156,7 +172,6 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	
 	//Tab 1: Text:
 	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
-	ModifyControl buttontext disable = !isTab1 // hide if not Tab 1
 	ModifyControl setvartext disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextht disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
@@ -168,7 +183,7 @@ Function clearPattern(ctrlname) : ButtonControl
 	String ctrlname
 	// backing up the current state of the MFP waves:
 	backupState()
-	
+
 	DrawLithoFunc("EraseAll")	
 End // endPattern
 
@@ -245,8 +260,9 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	// 3. Append the current XLitho, YLitho with these waves.
 End // addExternalPattern
 
-Function drawString(ctrlname) : ButtonControl
+Function drawCurrentText()
 	String ctrlname
+	print "drawCurrentText called!"
 	
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
@@ -282,8 +298,7 @@ Function drawString(ctrlname) : ButtonControl
 		return -1
 	endif
 	
-	// Backing up state:
-	backupState()
+	Make/O /N=0 XLitho, YLitho
 	
 	// Number of chars that can be written in one line:
 	// Assumes space between each char is half the char width
@@ -304,33 +319,36 @@ Function drawString(ctrlname) : ButtonControl
 		
 		//Printing stats:
 		print "Char stats: char = '" + gText[i] + "', xstart = " + num2str(xstart) + ", ystart = " + num2str(toplimit - textheight)
+		
+		// handling spaces:
+		// just move, do nothing.
+		if(cmpstr(gText[i]," ") == 0)
+			xstart = xstart + (1.5*textwidth)
+			continue
+		endif
 	
 		drawAlphabet(Upperstr(gText[i]), xstart, (toplimit - textheight), textheight, textwidth)
 		xstart = xstart + (1.5*textwidth)
 		
 		// Appending the waves:
-		appendWaves(root:packages:MFP3D:Litho:XLitho, XLitho,"appendedX")
-		appendWaves(root:packages:MFP3D:Litho:YLitho, YLitho,"appendedY")
+		appendWaves(XAlpha, XLitho,"appendedX")
+		appendWaves(YAlpha, YLitho,"appendedY")
 	
-		// Duplicate the right waves that are used for rendering
-		Duplicate/O root:packages:SmartLitho:appendedX, root:packages:MFP3D:Litho:XLitho
-		Duplicate/O root:packages:SmartLitho:appendedY, root:packages:MFP3D:Litho:YLitho
+		// Just keep refreshing the local Litho waves
+		// No rendering done here
+		Duplicate/O appendedX, XLitho
+		Duplicate/O appendedY, YLitho
 	
 		// Clean up:
-		KillWaves appendedX, appendedY
-		
-		//Lines not rendering for the first time-> Save and then load for now???
-		DrawLithoFunc("DrawWave")	
+		// Avoid appending
+		KillWaves appendedX, appendedY	
 	endfor
 	
 	print "---------------------------------------------------------------------------------------"	
 	
-	// Calculating the total time to litho:
-	CalcLithoTime()
-	
 	SetDataFolder dfSave
 	
-End // drawString
+End // drawCurrentText
 
 Function appendPattern(ctrlname) : ButtonControl
 	String ctrlname
@@ -348,7 +366,14 @@ Function appendPattern(ctrlname) : ButtonControl
 	
 	// Drawing this NEW pattern onto the home Litho waves.
 	// but NOT rendering it yet.
-	drawCurrentPattern()
+	
+	NVAR gChosenTab
+
+	if(gChosenTab == 0)
+		drawCurrentLines()
+	elseif(gChosenTab == 1)
+		drawCurrentText()
+	endif
 	
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
@@ -367,6 +392,8 @@ Function appendPattern(ctrlname) : ButtonControl
 	
 	// Clean up:
 	KillWaves appendedX, appendedY
+	// Avoiding appending instead of overwriting
+	Redimension /N=0 XLitho, YLitho
 	
 	// restoring directory structure:
 	SetDataFolder dfSave
@@ -417,7 +444,13 @@ Function drawNew(ctrlname) : ButtonControl
 	// backing up the current state of the MFP waves:
 	backupState()
 	
-	drawCurrentPattern()
+	NVAR gChosenTab
+	
+	if(gChosenTab == 0)
+		drawCurrentLines()
+	elseif(gChosenTab == 1)
+		drawCurrentText()
+	endif
 	
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
@@ -431,6 +464,9 @@ Function drawNew(ctrlname) : ButtonControl
 	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
 	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
 	
+	// Avoiding appending instead of overwriting
+	Redimension /N=0 XLitho, YLitho
+	
 	//Lines not rendering for the first time-> Save and then load for now???
 	DrawLithoFunc("DrawWave")	
 	
@@ -439,7 +475,9 @@ Function drawNew(ctrlname) : ButtonControl
 	
 End // drawFreshly
 
-Function drawCurrentPattern() 
+Function drawCurrentLines() 
+
+	print "drawCurrentLines called"
 
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
@@ -764,13 +802,3 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
     endfor
 
 End//drawToB
-
-// Note: 
-// Waves are stored in root:packages:MFP3D:Litho:LithoWaves:Ymywavename, Xmywavename
-// Currently MFP allows loading and saving of SINGLE patterns ONLY
-// LithoGroupFunc("SaveWave")
-// LithoGroupFunc("LoadWave")
-// Need to come up with a way of merging 
-// Such a function will heavily be derived from the load wave pre-written function
-// except, it doesn't erase whatever is already there in the XLitho and the YLitho
-// Appending may require some reading up
