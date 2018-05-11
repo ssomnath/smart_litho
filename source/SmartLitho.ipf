@@ -2,6 +2,9 @@
 
 //Suhas Somnath, UIUC 2009
 
+// Version 1.8:
+// Added a Layers 2 tab - allows creation of array of patterns
+
 // Version 1.7:
 // Can now undo rotate and move
 // Length priority defaults to truncate now.
@@ -10,8 +13,8 @@
 // Replaced all nm references with um. 
 // Updated GUI appearance 
 
-Menu "Macros"
-	SubMenu "UIUC Lithography"
+Menu "UIUC"
+	SubMenu "Lithography"
 		"Smart Litho Art Suite", SmartLithoDriver()
 	End
 End
@@ -67,6 +70,16 @@ Function SmartLithoDriver()
 	// Flipping Variables:
 	Variable/G gFlipHoriz = 0
 	Variable/G gFlipVert = 0
+	
+	// Array / Step variables:
+	Variable XCount = NumVarOrDefault(":gXCount", 1)
+	Variable/G gXCount = XCount
+	Variable YCount = NumVarOrDefault(":gYCount", 1)
+	Variable/G gYCount = YCount
+	Variable XStep = NumVarOrDefault(":gXStep", (scansize/10))
+	Variable/G gXStep = XStep
+	Variable YStep = NumVarOrDefault(":gYStep", (scansize/10))
+	Variable/G gYStep = YStep
 	
 	// Text variables:
 	String /G gText = ""
@@ -129,7 +142,8 @@ Window SmartLithoPanel(): Panel
 	
 	TabControl tabcont, tabLabel(0)="Lines"
 	TabControl tabcont, tabLabel(1)="Text"
-	TabControl tabcont, tabLabel(2)="Layers", value=root:packages:SmartLitho:gChosenTab
+	TabControl tabcont, tabLabel(2)="Layers 1" 
+	TabControl tabcont, tabLabel(3)="Layers 2", value=root:packages:SmartLitho:gChosenTab
 	TabControl tabcont, pos={8,8}, size={345,277}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+6
@@ -184,7 +198,7 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvartextsp,pos={35,157},size={119,18},title="Space (um)", limits={0,(1*scansize),1}
 	SetVariable setvartextsp,value= root:packages:SmartLitho:gtextspace,live= 1
 	
-	// Tab #2: Layers:
+	// Tab #2: Layers 1:
 	Popupmenu layerselector, fstyle=1, fsize= 15, pos={18,57},size={135,18},title="Layer", proc=LayerSelectorPM
 	Popupmenu layerselector,value= root:packages:SmartLitho:gLayernames,live= 1
 	
@@ -236,7 +250,22 @@ Window SmartLithoPanel(): Panel
 	
 	Button buttonFlipLayer,pos={270,243},size={50,25},title="Flip", proc=flipLayer
 	
+	// Tab 3 - Layers 2
 	
+	SetVariable svarraytitle, pos={18,42},size={0,18},title="Create Array:"
+	SetVariable svarraytitle, fSize=15,fstyle=1, limits={0,0,0}, disable=2, noedit=1	
+	
+	SetVariable svnx,pos={35,72},size={111,18},title="X Count"
+	SetVariable svnx,value= root:packages:SmartLitho:gXCount,live= 1
+	SetVariable svny,pos={162,72},size={111,18},title="Y Count", limits={0,inf,1}	
+	SetVariable svny,value=root:packages:SmartLitho:gYCount,live= 1, limits={0,inf,1}	
+	
+	SetVariable svdx,pos={35,106},size={111,18},title="X Step (um)", limits={0,(1*scansize),1}	
+	SetVariable svdx,value= root:packages:SmartLitho:gXStep,live= 1
+	SetVariable svdy,pos={162,106},size={111,18},title="Y Step (um)", limits={0,(1*scansize),1}	
+	SetVariable svdy,value= root:packages:SmartLitho:gYStep,live= 1
+	
+	Button buttonMakeArray,pos={284,67},size={55,60},title="Do It", proc=makeArray
 	
 	// Global Parameters:
 	SetDrawEnv fstyle= 1,fsize= 15
@@ -297,6 +326,7 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	Variable isTab0= tabNum==0
 	Variable isTab1= tabNum==1
 	Variable isTab2= tabNum==2
+	Variable isTab3= tabNum==3
 	//disable=0 means show, disable=1 means hide
 	
 	//more details - refer to 
@@ -322,7 +352,7 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
-	//Tab 2: Layers
+	//Tab 2: Layers 1:
 	ModifyControl buttonDrawPattern disable= isTab2 // hide if not Tab 2	
 	ModifyControl buttonAppendPattern disable= isTab2 // hide if not Tab 2	
 	
@@ -347,6 +377,17 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl checkflipvert disable= !isTab2 // hide if not Tab 2
 	
 	ModifyControl buttonRotateLayer disable= !isTab2 // hide if not Tab 2
+	
+	//Tab 2: Layers 2:
+	ModifyControl svarraytitle disable= !isTab3
+	
+	ModifyControl svnx disable= !isTab3
+	ModifyControl svny disable= !isTab3
+	
+	ModifyControl svdx disable= !isTab3
+	ModifyControl svdy disable= !isTab3
+	
+	ModifyControl buttonMakeArray disable= !isTab3
 	
 	return 0	
 	
@@ -861,7 +902,7 @@ Function ShiftLayer(ctrlname) : ButtonControl
 	//print "gShiftUp = " + num2str(gShiftUp) + ", gShiftRight = " + num2str(gShiftRight)
 	
 	if(!gShiftUp && !gShiftRight)
-		print "ended here"
+		print "Smart Litho Warning: ended here"
 		return 0
 	endif
 	
@@ -1131,6 +1172,8 @@ Function loadPattern(ctrlname) : ButtonControl
 	
 	DrawLithoFunc("StopDraw_0")
 	
+	SetDataFolder dfSave
+	
 End // loadPattern
 
 Function undoLastPattern(ctrlname) : ButtonControl
@@ -1146,7 +1189,7 @@ Function undoLastPattern(ctrlname) : ButtonControl
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
 		// will not exist. Abort!!!
-		print "Error: Undo - Check parameters, especially wrt scansize"
+		print "Smart Litho Warning: Undo - Check parameters, especially wrt scansize"
 		return -1;
 	endif
 		
@@ -1491,11 +1534,11 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 	String outputPath
 	Open /R /Z=2 /M="Select the text file containing the litho coordinates" refNum as ""
 	if(refNum == 0)
-		print "No file was open!"
+		//print "No file was open!"
 		//return -1
 	endif
 	if (V_flag == -1)
-		Print "Open cancelled by user."
+		//Print "Open cancelled by user."
 		return -1
 	endif
 	if (V_flag != 0)
@@ -1783,7 +1826,7 @@ Function drawNew(ctrlname) : ButtonControl
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
 		// will not exist. Abort!!!
-		print "X, Y Litho waves not found!!!"
+		//print "Smart Litho Warning: X, Y Litho waves not found!!!"
 		return -1;
 	endif
 	
@@ -1893,7 +1936,7 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
     	Variable ydecrement = abs(length * sin(angle))
     	if(angle == pi/2)
     		ydecrement = min(length,yend-ystart)
-    		print ydecrement
+    		//print ydecrement
     	endif
     	
     	// until now, space was the 
@@ -1930,7 +1973,7 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
     		numlines = min(quant1,numlines)
     	endif
     	
-    	print "Can draw "+ num2str(numlines) + " of " + num2str(tempnum) + " requested lines"
+    	print "Smart Litho Warning: Can draw "+ num2str(numlines) + " of " + num2str(tempnum) + " requested lines"
     	
     	//Make the data holding waves
 	Make/O/N=(numlines*3) XLitho
@@ -2179,4 +2222,92 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
         	endif
     endfor
 
-End//drawToB
+End //drawToB
+
+Function makeArray(ctrlname) : ButtonControl
+	String ctrlname
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
+	Variable scansize = mw[0]
+	
+	NVAR gTbord, gBbord, gLbord, gRbord, gXCount, gXStep, gYCount, gYStep		
+	// Coordinates of the actual writing box:
+	Variable leftlimit = gLbord * 1e-6
+	Variable rightlimit = scansize - (gRbord * 1e-6)
+	Variable toplimit =scansize - (gTbord * 1e-6)
+	Variable bottomlimit =gBbord * 1e-6
+	Variable Xstep = gXStep * 1e-6;
+	Variable Ystep = gYStep * 1e-6;
+	
+	if(leftlimit > rightlimit || toplimit < bottomlimit)
+		return -1
+	endif
+	
+	if(XStep > (rightlimit - leftlimit) || Ystep > (toplimit - bottomlimit))
+		return -1
+	endif
+	
+	SetDataFolder root:packages:MFP3D:Litho
+	
+	Wave XLitho, YLitho
+	
+	SetDataFolder root:packages:SmartLitho
+
+	// use the borders to move it automatically
+	// Also use the borders to limit the maximum scale
+	// to fit the borders
+	Variable xmin = wavemin(XLitho)
+	Variable ymin = wavemin(YLitho)
+	Variable xmax = wavemax(XLitho)
+	Variable ymax = wavemax(YLitho)
+	
+	// 1. Move to bottom left
+	XLitho = XLitho + leftlimit - xmin
+	YLitho = YLitho + bottomlimit - ymin
+	
+	// 2. Set the x and y count correctly:
+	//Variable YmaxCount = floor((scansize + Ystep - ((ymax-ymin) + bottomlimit + gTbord*1e-6))/YStep);
+	//Variable XmaxCount = floor((scansize + Xstep - ((xmax-xmin) + leftlimit + gRbord*1e-6))/XStep);
+	
+	Variable YmaxCount = floor((scansize + Ystep - (bottomlimit + gTbord*1e-6))/ ((ymax-ymin) + Ystep));
+	Variable XmaxCount = floor((scansize + Xstep - (leftlimit + gRbord*1e-6))/ ((xmax-xmin) + Xstep));
+	
+	if(gXCount > XmaxCount)
+		print "Smart Litho Warning: X Count reset to " + num2str(XmaxCount)
+		gXCount = XmaxCount;
+	endif
+	if(gYCount > YmaxCount)
+		print "Smart Litho Warning: Y Count reset to " + num2str(YmaxCount)
+		gYCount = YmaxCount;
+	endif
+	
+	// 3. Set up a new wave for the array.
+	Make/O/N=(numpnts(XLitho) * gXCount * gYCount) XWave
+	Make/O/N=(numpnts(XLitho) * gXCount * gYCount) YWave
+
+	// 4. Insert stuff into larger arrays
+	Variable i, j, k;
+	i=0; j=0; k=0;
+	for (i=0; i<gYCount; i=i+1)
+		for (j=0; j<gXCount; j=j+1)
+			for (k=0; k<numpnts(XLitho); k=k+1)
+				XWave[((i*gXCount) + j)*numpnts(XLitho) + k] = XLitho[k] + j*(XStep + (xmax-xmin));
+				YWave[((i*gXCount) + j)*numpnts(XLitho) + k] = YLitho[k] + i*(YStep + (ymax-ymin));
+			endfor
+		endfor
+	endfor
+	
+	// 4. Replace the X and Y Litho waves by the array waves
+	// Duplicate source, destination waves
+	Duplicate/O XWave, root:packages:MFP3D:Litho:XLitho
+	Duplicate/O YWave, root:packages:MFP3D:Litho:YLitho
+	
+	KillWaves XWave, YWave;
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+
+End
