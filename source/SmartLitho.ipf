@@ -2,6 +2,11 @@
 
 //Suhas Somnath, UIUC 2009
 
+// Version 1.7:
+// Can now undo rotate and move
+// Length priority defaults to truncate now.
+
+// Version 1.6:
 // Replaced all nm references with um. 
 // Updated GUI appearance 
 
@@ -39,7 +44,7 @@ Function SmartLithoDriver()
 	
 	// Advanced line variables:
 	String /G gLengthNames = "Truncate;Exact"
-	Variable/G gLengthPriority = 2 // for exact
+	Variable/G gLengthPriority = 1 // for Truncate
 	String /G gDirNames = "Default;Switch All;Switch alternate"
 	Variable/G gDirPriority = 1 // for default - none
 	
@@ -136,6 +141,9 @@ Window SmartLithoPanel(): Panel
 	//print "scan size = " + num2str(scansize)
 	//Variable scansize = 20000// in nanometers
 	
+	
+	// Tab #0: Lines
+	
 	SetVariable lineparams, pos={18,42},size={0,18},title="Line Parameters:"
 	SetVariable lineparams, fSize=15,fstyle=1, limits={0,0,0}, disable=2, noedit=1	
 	
@@ -157,6 +165,9 @@ Window SmartLithoPanel(): Panel
 	Popupmenu dirpriority,value= root:packages:SmartLitho:gDirNames,live= 1, proc=LineDir
 	Popupmenu lengthpriority,pos={205,187},size={135,18},title="Length", limits={0,(0.5*scansize),1}
 	Popupmenu lengthpriority,value= root:packages:SmartLitho:gLengthNames,live= 1, proc=LineLength
+	
+	Checkbox chkShowLineDir, pos = {24, 231}, size={10,10}, title="Show Direction Arrows", proc=ShowLineArrows
+	Checkbox chkShowLineDir, live=1
 
 	// Tab #1: Text:
 	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:"
@@ -199,21 +210,21 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarDShift,pos={155,114},size={117,18},title="Up (um)", limits={(-1*scansize),(1*scansize),1}
 	SetVariable setvarDShift,value= root:packages:SmartLitho:gShiftUp,live= 1
 	
-	Button buttonShiftLayer,pos={282,114},size={52,25},title="Move",proc=ShiftLayer
+	Button buttonShiftLayer,pos={282,112},size={52,25},title="Move",proc=ShiftLayer
 	
 	
 	
 	SetVariable setvarRotate,pos={18,160},size={160,18},title="Rotate ccw (deg)", limits={-179,180,1}
 	SetVariable setvarRotate,value= root:packages:SmartLitho:gRotateAngle,live= 1
 	
-	Button buttonRotateLayer,pos={200,160},size={60,25},title="Rotate",proc=RotateLayer
+	Button buttonRotateLayer,pos={200,158},size={60,25},title="Rotate",proc=RotateLayer
 	
 	
 	
 	SetVariable setvarScale,pos={18,201},size={91,18},title="Scale", limits={0,inf,1}
 	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
 	
-	Button buttonScaleLayer,pos={145,201},size={185,25},title="Re-Position & Re-Scale", proc=reScaleAndPosition
+	Button buttonScaleLayer,pos={145,199},size={185,25},title="Re-Position & Re-Scale", proc=reScaleAndPosition
 	
 	
 	
@@ -223,7 +234,7 @@ Window SmartLithoPanel(): Panel
 	Checkbox checkflipvert, pos={157,245},size={10,10}, title="Vertically", proc=FlipCB
 	Checkbox checkflipvert, value= root:packages:SmartLitho:gFlipVert, live=1
 	
-	Button buttonFlipLayer,pos={270,245},size={50,25},title="Flip", proc=flipLayer
+	Button buttonFlipLayer,pos={270,243},size={50,25},title="Flip", proc=flipLayer
 	
 	
 	
@@ -247,21 +258,21 @@ Window SmartLithoPanel(): Panel
 	DrawText 14,405, "General Functions:"
 	
 	Button buttonDrawPattern,pos={21,418},size={100,25},title="Draw New", proc=drawNew
-	Button buttonUndo,pos={142,418},size={70,25},title="Undo", proc=undoLastPattern
-	Button buttonAppendPattern,pos={234,418},size={100,25},title="Append", proc=appendPattern
+	Button buttonUndo,pos={149,418},size={70,25},title="Undo", proc=undoLastPattern
+	Button buttonAppendPattern,pos={246,418},size={100,25},title="Append", proc=appendPattern
 	
 	Button buttonLoadPattern,pos={21,454},size={100,25},title="Load New", proc=loadPattern
-	Button buttonClearPattern,pos={142,454},size={70,25},title="Clear", proc=clearPattern
-	Button buttonSavePattern,pos={234,454},size={100,25},title="Save", proc=savePattern
+	Button buttonClearPattern,pos={149,454},size={70,25},title="Clear", proc=clearPattern
+	Button buttonSavePattern,pos={246,454},size={100,25},title="Save", proc=savePattern
 	
-	Button buttonAppendSaved,pos={21,489},size={100,25},title="Append Saved", proc=addExternalPattern
-	Button buttonLoadFromDisk,pos={128,489},size={100,25},title="Load from Disk", proc=LoadWavesFromDisk
-	Button buttonSaveToDisk,pos={234,489},size={100,25},title="Save to Disk", proc=savePatternToDisk
+	Button buttonAppendSaved,pos={21,489},size={105,25},title="Append Saved", proc=addExternalPattern
+	Button buttonLoadFromDisk,pos={133,489},size={106,25},title="Load from Disk", proc=LoadWavesFromDisk
+	Button buttonSaveToDisk,pos={246,489},size={100,25},title="Save to Disk", proc=savePatternToDisk
 	
 	Button buttonHelp,pos={276,7},size={74,20},title="Help", proc=SmartLithoHelp
 	
 	SetDrawEnv textrgb= (0,0,65280),fstyle= 1,fsize= 15
-	DrawText 140, 541, "Suhas Somnath, UIUC 2009"
+	DrawText 153, 541, "Suhas Somnath, UIUC 2009"
 	
 	// Making only the tab gChosenTab things show up on startup
 	TabProc ("dummy", root:packages:SmartLitho:gChosenTab)
@@ -298,9 +309,11 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvarlinespace disable= !isTab0 // hide if not Tab 0
 	ModifyControl setvarangle disable= !isTab0 // hide if not Tab 0
 	
-	ModifyControl advcontrols disable= !isTab0 // hide if not Tab 1
-	ModifyControl dirpriority disable= !isTab0 // hide if not Tab 1
-	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 1
+	ModifyControl advcontrols disable= !isTab0 // hide if not Tab 0
+	ModifyControl dirpriority disable= !isTab0 // hide if not Tab 0
+	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 0
+	ModifyControl chkShowLineDir disable= !isTab0 // hide if not Tab 0
+	
 		
 	//Tab 1: Text:
 	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
@@ -338,6 +351,21 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	return 0	
 	
 End // TabProc
+
+Function ShowLineArrows(cba) : CheckBoxControl
+	STRUCT WMCheckboxAction &cba
+
+	switch( cba.eventCode )
+		case 2: // mouse up
+			Variable checked = cba.checked
+			
+			ToggleLithoArrows("ShowArrowBox_0",checked)
+			
+			break
+	endswitch
+
+	return 0
+End
 
 Function FlipCB(cba) : CheckBoxControl
 	STRUCT WMCheckboxAction &cba
@@ -769,6 +797,7 @@ Function flipLayer(ctrlname) : ButtonControl
 		return 0
 	Endif
 	
+	// Making appropriate backups
 	Duplicate/O Master_XLitho, old_Master_XLitho
 	Duplicate/O Master_YLitho, old_Master_YLitho
 	
@@ -836,6 +865,7 @@ Function ShiftLayer(ctrlname) : ButtonControl
 		return 0
 	endif
 	
+	backupState()
 	Duplicate/O Master_XLitho, old_Master_XLitho
 	Duplicate/O Master_YLitho, old_Master_YLitho
 	
@@ -917,6 +947,7 @@ Function rotateLayer(ctrlname) : ButtonControl
 	
 	Variable angle = (pi/180)*gRotateAngle
 	
+	backupState()
 	Duplicate/O Master_XLitho, old_Master_XLitho
 	Duplicate/O Master_YLitho, old_Master_YLitho
 	
