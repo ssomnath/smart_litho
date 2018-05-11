@@ -2,6 +2,8 @@
 
 //Suhas Somnath, UIUC 2009
 // Comments - Cleaned up print lines, help, direction and length priorities, added space for text
+// Upcoming: rotation, duplicating, operations
+// Writing only in a certain direction - ability to change the direction
 
 Menu "Macros"
 	"Smart Litho", SmartLithoDriver()
@@ -50,17 +52,38 @@ Function SmartLithoDriver()
 	Variable/G gRbord = Rbord
 	
 	// Scaling Variable:
-	Variable scale = NumVarOrDefault(":gScale", 1)
-	Variable/G gScale = scale
+	Variable/G gScale = 1
+	
+	// Rotation Variable:
+	Variable/G gRotateAngle = 0
+	
+	// Flipping Variables:
+	Variable/G gFlipHoriz = 0
+	Variable/G gFlipVert = 0
 	
 	// Text variables:
 	String /G gText = ""
+	
 	Variable textheight = NumVarOrDefault(":gtextheight", (scansize/20))
 	Variable/G gtextheight = textheight
 	Variable textwidth = NumVarOrDefault(":gtextwidth", (scansize/20))
 	Variable/G gtextwidth = textwidth
 	Variable textspace = NumVarOrDefault(":gtextspace", (scansize/40))
 	Variable/G gtextspace = textspace
+	
+	// Layer Variables:
+	Variable layernum = NumVarorDefault(":gLayernum",0)
+	Variable/G gLayerNum = layernum
+	String /G gLayernames = StrVarOrDefault(":gLayernames","")
+	Variable/G gSelectedLayer = -1
+	Variable/G gSingleShow = 1
+	Variable/G gAllShow = 1
+	Variable/G gSingleSelect = 0
+	Variable/G gAllSelect = 0
+	Variable/G gWasRedraw = 0
+	Variable/G gShiftRight=0
+	Variable/G gShiftUp=0
+	Make/O /N=(10,5) /D layers
 
 	// Tab variables
 	// useful in figuring out the operation on which tab was called
@@ -94,15 +117,17 @@ End //SmartLithoDriver
 Window SmartLithoPanel(): Panel
 
 	PauseUpdate; Silent 1		// building window...
-	NewPanel /K=1 /W=(485,145, 840,570) as "Smart Litho"
+	NewPanel /K=1 /W=(485,145, 840,625) as "Smart Litho"
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Lines"
-	TabControl tabcont, tabLabel(1)="Text", value=root:packages:SmartLitho:gChosenTab
+	TabControl tabcont, tabLabel(1)="Text"
+	TabControl tabcont, tabLabel(2)="Layers", value=root:packages:SmartLitho:gChosenTab
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
 	//print "scan size = " + num2str(scansize)
+	//PV("ScanSize",35e-6)
 	scansize = max(20000,scansize)
 	//resetting the scansize to the default size:
 	//root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0] = 20e-6
@@ -144,7 +169,35 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvartextsp,pos={35,125},size={119,18},title="Space (nm)", limits={0,(1*scansize),1}
 	SetVariable setvartextsp,value= root:packages:SmartLitho:gtextspace,live= 1
 	
-	// Global Border Parameters:
+	// Tab #2: Layers:
+	Checkbox allvisiblecheck, pos = {20, 42}, size={10,10}, title="Show all", proc=ShowAllLayersCB
+	Checkbox allvisiblecheck, value= root:packages:SmartLitho:gAllShow, live=1
+	
+	Checkbox allselectcheck, pos = {150, 42}, size={10,10}, title="Select all"
+	Checkbox allselectcheck, value= root:packages:SmartLitho:gAllSelect, live=1
+	
+	Popupmenu layerselector,pos={17,72},size={135,18},title="Number", proc=LayerSelectorPM
+	Popupmenu layerselector,value= root:packages:SmartLitho:gLayernames,live= 1
+	
+	Checkbox layervisiblecheck, pos={150,75},size={10,10}, title="Show", proc=showSingleLayerCB
+	Checkbox layervisiblecheck, value= root:packages:SmartLitho:gSingleShow, live=1
+	
+	Checkbox layerselectcheck, pos={220,75},size={10,10}, title="Select"
+	Checkbox layerselectcheck, value= root:packages:SmartLitho:gSingleSelect, live=1
+	
+	Button buttonScaleLayer,pos={19,110},size={155,20},title="Re-Position & Re-Scale", proc=reScaleAndPosition
+	Button buttonFlipLayer,pos={196,110},size={50,20},title="Flip", proc=flipLayer
+	Button buttonDeleteLayer,pos={264,110},size={70,20},title="Delete",proc=deleteLayerButton
+	
+	SetVariable setvarRShift,pos={20,142},size={117,18},title="Right (nm)", limits={(-1*scansize),(1*scansize),1}
+	SetVariable setvarRShift,value= root:packages:SmartLitho:gShiftRight,live= 1
+	SetVariable setvarDShift,pos={150,142},size={117,18},title="Up (nm)", limits={(-1*scansize),(1*scansize),1}
+	SetVariable setvarDShift,value= root:packages:SmartLitho:gShiftUp,live= 1
+	Button buttonShiftLayer,pos={282,142},size={52,20},title="Move",proc=ShiftLayer
+	
+	Button buttonRotateLayer,pos={20,172},size={52,20},title="Rotate",proc=RotateLayer
+	
+	// Global Parameters:
 	DrawText 18,226, "Borders:"
 		
 	SetVariable setvarTbord,pos={44,230},size={108,18},title="Top (nm)", limits={0,(1*scansize),1}
@@ -157,24 +210,36 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarRbord,pos={213,258},size={117,18},title="Right (nm)", limits={0,(1*scansize),1}
 	SetVariable setvarRbord,value= root:packages:SmartLitho:gRbord,live= 1
 	
-	SetVariable setvarScale,pos={15,286},size={102,18},title="Scale", limits={0,inf,1}
+	SetVariable setvarRotate,pos={12,288},size={150,18},title="Rotate acc (deg)", limits={-179,180,1}
+	SetVariable setvarRotate,value= root:packages:SmartLitho:gRotateAngle,live= 1
+	SetVariable setvarScale,pos={238,288},size={91,18},title="Scale", limits={0,inf,1}
 	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
-	Button buttonScale,pos={231,291},size={100,20},title="Help", proc=SmartLithoHelp
+		
+	Checkbox checkfliphoriz, pos={15,316},size={10,10}, title="Flip Horizontally", proc=FlipCB
+	Checkbox checkfliphoriz, value= root:packages:SmartLitho:gFlipHoriz, live=1
+	Checkbox checkflipvert, pos={155,316},size={10,10}, title="Vertically", proc=FlipCB
+	Checkbox checkflipvert, value= root:packages:SmartLitho:gFlipVert, live=1
+	Button buttonHelp,pos={270,316},size={56,20},title="Help", proc=SmartLithoHelp
 	
 	// Global buttons:
-	DrawText 14,331, "Pattern Functions:"
+	DrawText 14,360, "Pattern Functions:"
 	
-	Button buttonDrawPattern,pos={21,344},size={100,20},title="Draw New", proc=drawNew
-	Button buttonUndo,pos={142,344},size={70,20},title="Undo", proc=undoLastPattern
-	Button buttonAppendPattern,pos={234,344},size={100,20},title="Append", proc=appendPattern
+	Button buttonDrawPattern,pos={21,371},size={100,20},title="Draw New", proc=drawNew
+	Button buttonUndo,pos={142,371},size={70,20},title="Undo", proc=undoLastPattern
+	Button buttonAppendPattern,pos={234,371},size={100,20},title="Append", proc=appendPattern
 	
-	Button buttonLoadPattern,pos={21,371},size={100,20},title="Load New", proc=loadPattern
-	Button buttonClearPattern,pos={142,371},size={70,20},title="Clear", proc=clearPattern
-	Button buttonSavePattern,pos={234,371},size={100,20},title="Save", proc=savePattern
+	Button buttonLoadPattern,pos={21,398},size={100,20},title="Load New", proc=loadPattern
+	Button buttonClearPattern,pos={142,398},size={70,20},title="Clear", proc=clearPattern
+	Button buttonSavePattern,pos={234,398},size={100,20},title="Save", proc=savePattern
 	
-	Button buttonAppendSaved,pos={21,398},size={100,20},title="Append Saved", proc=addExternalPattern
-	Button buttonLoadFromDisk,pos={128,398},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
-	Button buttonSaveToDisk,pos={234,398},size={100,20},title="Save to Disk", proc=savePatternToDisk
+	Button buttonAppendSaved,pos={21,427},size={100,20},title="Append Saved", proc=addExternalPattern
+	Button buttonLoadFromDisk,pos={128,427},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
+	Button buttonSaveToDisk,pos={234,427},size={100,20},title="Save to Disk", proc=savePatternToDisk
+	
+	DrawText 177, 472, "Suhas Somnath, UIUC 2009"
+	
+	// Making only the tab gChosenTab things show up on startup
+	TabProc ("dummy", root:packages:SmartLitho:gChosenTab)
 	
 EndMacro //SmartLithoPanel
 
@@ -192,10 +257,10 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	NVAR gChosenTab
 	gChosenTab = tabnum
 	SetDataFolder dfSave
-		
+			
 	Variable isTab0= tabNum==0
 	Variable isTab1= tabNum==1
-	
+	Variable isTab2= tabNum==2
 	//disable=0 means show, disable=1 means hide
 	
 	//more details - refer to 
@@ -211,13 +276,7 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl advcontrols disable= !isTab0 // hide if not Tab 1
 	ModifyControl dirpriority disable= !isTab0 // hide if not Tab 1
 	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 1
-	
-	//ModifyControl bordparams disable= !isTab0
-	//ModifyControl setvarLbord disable= !isTab0 // hide if not Tab 0
-	//ModifyControl setvarRbord disable= !isTab0 // hide if not Tab 0
-	//ModifyControl setvarTbord disable= !isTab0 // hide if not Tab 0
-	//ModifyControl setvarBbord disable= !isTab0 // hide if not Tab 0
-	
+		
 	//Tab 1: Text:
 	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartext disable= !isTab1 // hide if not Tab 1
@@ -225,8 +284,706 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
-	return 0
+	//Tab 2: Layers
+	ModifyControl allvisiblecheck disable= !isTab2 // hide if not Tab 2	
+	ModifyControl allselectcheck disable= !isTab2 // hide if not Tab 2	
+	
+	ModifyControl layerselector disable= !isTab2 // hide if not Tab 2
+	ModifyControl layervisiblecheck disable= !isTab2 // hide if not Tab 2
+	ModifyControl layerselectcheck disable= !isTab2 // hide if not Tab 2
+	
+	ModifyControl buttondeletelayer disable= !isTab2 // hide if not Tab 2
+	ModifyControl buttonFlipLayer disable= !isTab2 // hide if not Tab 2
+	ModifyControl buttonScaleLayer disable= !isTab2 // hide if not Tab 2
+	
+	ModifyControl setvarRShift disable= !isTab2 // hide if not Tab 2
+	ModifyControl setvarDShift disable= !isTab2 // hide if not Tab 2
+	ModifyControl buttonShiftLayer disable= !isTab2 // hide if not Tab 2
+	
+	ModifyControl buttonRotateLayer disable= !isTab2 // hide if not Tab 2
+	
+	return 0	
+	
 End // TabProc
+
+Function FlipCB(cba) : CheckBoxControl
+	STRUCT WMCheckboxAction &cba
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gFlipHoriz, gFlipVert
+
+	switch( cba.eventCode )
+		case 2: // mouse up
+			Variable checked = cba.checked
+			if( !cmpstr("checkfliphoriz",cba.ctrlName))
+				gFlipHoriz = checked
+			else
+				gFlipVert = checked
+			endif
+			break
+	endswitch
+	
+	SetDataFolder dfSave
+
+	return 0
+End
+
+Function LayerSelectorPM(pa) : PopupMenuControl
+	STRUCT WMPopupAction &pa
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gSelectedLayer, gSingleSelect, gSingleShow
+	Wave Layers
+	
+	switch( pa.eventCode )
+		case 2: // mouse up
+			gSelectedLayer = pa.popNum-1
+			// updating the  checkboxes for the selected layer
+			gSingleSelect = layers[gSelectedLayer][4]
+			gSingleShow = layers[gSelectedLayer][3]
+			String ControlName = "layervisiblecheck"
+			Checkbox $ControlName, Value=gSingleShow
+			ControlName = "layerselectcheck"
+			Checkbox $ControlName, Value=gSingleSelect
+			break
+	endswitch
+	
+	SetDataFolder dfSave
+	
+End //LineDir
+
+Function addNewLayer(startindex,endindex)
+
+	Variable startindex,endindex
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	NVAR gLayernum
+	SVAR gLayernames
+	Wave layers
+	
+	gLayerNum += 1
+	
+	if (glayernum == 1)
+		gLayernames = "1"
+	else
+		gLayernames += ";" + num2str(gLayerNum)
+	endif
+	
+	gLayerNum -= 1
+	
+	layers[gLayerNum][0] = gLayerNum+1
+	layers[gLayerNum][1] = startindex
+	layers[gLayerNum][2] = endindex
+	layers[gLayerNum][3] = 1 // Show
+	layers[gLayerNum][4] = 0 // Selected
+	
+	gLayerNum += 1
+	
+	SetDataFolder dfSave
+End
+
+Function updateMasterWaves(mode)
+	Variable mode
+	// Make copy to master:
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gWasRedraw
+	
+	if( mode == 0)
+		// case = freshly drawn
+		//MFP waves must be same as Master
+		Duplicate/O root:packages:MFP3D:Litho:XLitho, master_XLitho
+		Duplicate/O root:packages:MFP3D:Litho:YLitho, master_YLitho
+	elseif( mode == 1 || mode == 2)
+		
+		// MFP waves may / may NOT be displaying some of the layers in master
+		// append the newly drawn stuff to the master as well:
+		
+		// Appending the waves to a temporary location:
+		if (mode == 1)
+			// case = appending Loaded pattern
+			appendWaves(master_XLitho, root:packages:MFP3D:Litho:XLitho, "appendedX2")
+			appendWaves(master_YLitho, root:packages:MFP3D:Litho:YLitho, "appendedY2")
+		else 
+			//Case = Appending drawn pattern
+			appendWaves(master_XLitho, XLitho, "appendedX2")
+			appendWaves(master_YLitho, YLitho, "appendedY2")
+		endif
+		
+		// Duplicate the temporary wave to the Master wave
+		Duplicate/O appendedX2, master_XLitho
+		Duplicate/O appendedY2, master_YLitho
+	
+		// Clean up:
+		KillWaves appendedX2, appendedY2
+		
+	elseif( mode == 3 && gWasRedraw == 0)
+		// case = undo-ing last pattern
+		// Need to remove the last layer from master	
+		NVAR gLayernum
+		Wave Layers
+		// The layers wave has already been updated to remove the last layer.
+		// Need to take the end position of the last layer and add one to get the right size
+		if(gLayernum == 0)
+			Redimension /N=(0) Master_XLitho, Master_XLitho
+		else
+			Redimension /N=(Layers[gLayernum-1][2]+1) Master_XLitho, Master_XLitho
+		endif
+	elseif( mode == 3 && gWasRedraw == 1)
+	
+		Duplicate/O old_Master_XLitho, Master_XLitho
+		Duplicate/O old_Master_YLitho, Master_YLitho 
+		
+		gWasRedraw = 0
+		
+	endif
+	
+	SetDataFolder dfSave
+
+End 
+
+Function eraseAllLayers()
+	// resetting all layers:
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	NVAR gLayerNum
+	SVAR gLayerNames
+	
+	Make/O/N=(10,5) layers
+	Variable i,j
+	for(i=0; i<10; i+=1)
+		for(j=0; j<5; j+=1)
+			layers[i][j]=0
+		endfor
+	endfor
+	gLayerNum = 0
+	gLayerNames = ""
+	
+	SetDataFolder dfSave
+End
+
+Function reWriteLayerNames()
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	Wave layers
+	NVAR gLayerNum
+	SVAR gLayerNames
+	Variable i
+	
+	if(gLayerNum > 0)
+		gLayerNames = "" + num2str(layers[0][0])
+		
+		for(i=1;i<gLayerNum;i+=1)
+			if(layers[i][0] != 0)
+				gLayerNames += ";" + num2str(layers[i][0])
+			endif 							
+		endfor	
+	else
+		gLayerNames = ""
+	endif
+	
+	SetDataFolder dfSave
+End
+
+Function showSingleLayerCB(cba) : CheckBoxControl
+	STRUCT WMCheckboxAction &cba
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	Wave layers
+	NVAR gSelectedLayer
+
+	switch( cba.eventCode )
+		case 2: // mouse up
+			Variable checked = cba.checked
+			if(gSelectedLayer > -1)
+				//print "Layers["+num2str(gSelectedLayer)+"][3] = " + num2str(checked)
+				layers[gSelectedLayer][3] = checked
+				refreshRender()
+			endif
+			break
+	endswitch
+	
+	SetDataFolder dfSave
+
+	return 0
+End
+
+Function showAllLayersCB(cba) : CheckBoxControl
+	STRUCT WMCheckboxAction &cba
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	Wave layers, Master_XLitho, Master_YLitho
+	NVAR gLayerNum
+	
+	Wave mfpX = root:packages:MFP3D:Litho:XLitho
+	Wave mfpY = root:packages:MFP3D:Litho:YLitho
+	
+	Variable i
+
+	switch( cba.eventCode )
+		case 2: // mouse up
+			Variable checked = cba.checked
+			
+			for(i=0; i<gLayerNum; i+=1)
+				Layers[i][3] = checked
+			endfor
+			
+			String ControlName = "layervisiblecheck"
+			Checkbox $ControlName, Value=checked
+			
+			if(checked)
+				//Duplicate Master into MFP
+				Duplicate/O Master_XLitho, mfpx
+				Duplicate/O Master_YLitho, mfpy
+			else
+				//Redimension MFP waves to 0
+				Redimension /N=(0) mfpx,mfpy
+			endif
+			
+			break
+	endswitch
+	
+	SetDataFolder dfSave
+
+	return 0
+End
+
+Function refreshRender()
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	Wave layers, Master_XLitho, Master_YLitho
+	NVAR gLayerNum
+	
+	// For simplicity sake completely rewrite the entire MFP waves
+	// according to the layer plans
+	// This should work for both deletes and show/hides
+	
+	// First find out the size of the X and Y Litho waves:
+	Variable i, size=0
+	for (i=0; i<gLayerNum; i+=1)
+		if(Layers[i][3] == 1)// Show
+			//Add its size to total:
+			// 0 -> 2 = 3 not 2
+			size += Layers[i][2] + 1 - Layers[i][1]
+		endif
+	endfor
+	
+	//print "new size is going to be = " + num2str(size)
+	
+	Make/O/N=(size) root:packages:MFP3D:Litho:XLitho, root:packages:MFP3D:Litho:YLitho, XLitho, YLitho
+	
+	Wave mfpX = root:packages:MFP3D:Litho:XLitho
+	Wave mfpY = root:packages:MFP3D:Litho:YLitho
+	
+	// Go through layers and master waves copying only those layers that are to be shown:
+	Variable mfpindex=0
+	for (i=0; i<gLayerNum; i+=1)
+		if(Layers[i][3] == 1)// Show
+			//copying 
+			for(size=Layers[i][1]; size <= Layers[i][2]; size +=1)
+				mfpX[mfpindex] = Master_XLitho[size]
+				mfpY[mfpindex] = Master_YLitho[size]
+				mfpindex += 1
+			endfor
+		endif
+	endfor
+	
+	SetDataFolder dfSave
+End
+
+Function deleteLayerButton(ctrlname) : ButtonControl
+	String ctrlname	
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gSelectedLayer
+	
+	deleteLayer(gSelectedLayer)
+	
+	SetDataFolder dfSave
+	
+End // savePattern
+
+Function deleteLayer(layerindex)
+	Variable layerindex
+	
+	// Following must be updated IN ORDER each time this method is called:
+	// 1. Master wave
+	// 2. layers wave 
+	// 3. LayerNum - subtract by 1
+	// 4. LayerNames - reWriteLayerNames
+	// 5. rerendering litho waves - call refreshRender
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	Wave layers, Master_XLitho, Master_YLitho
+	NVAR gLayerNum
+	
+	if(layerindex >= gLayerNum || layerindex < 0)
+		return -1
+	endif
+	
+	// Two easy cases exist :
+	// 1 - deleting the only layer or the last layer
+	if(layerindex ==  (gLayerNum - 1)) 
+		
+		if(gLayernum == 1)
+			// Only layer case
+			Redimension /N=(0) Master_XLitho, Master_XLitho
+			Make/O /N=(10,5) layers
+			Variable p,q
+			for(p=0; p<10; p+=1)
+				for(q=0; q<5; q+=1)
+					layers[p][q]=0
+				endfor
+			endfor
+			
+		else
+			// Last layer case
+			Redimension /N=(Layers[gLayernum-1][2]+1) Master_XLitho, Master_XLitho
+			Redimension /N=(gLayerNum-1,5) Layers
+		endif
+		
+	else
+		
+		// Part 1 - Deleting the pattern in the Master wave:
+		// First find out the new size of the master waves:
+		Variable size = numpnts(Master_XLitho) - (Layers[layerindex][2] + 1 - Layers[layerindex][1])
+		
+		// Making new temporary waves
+		Make/O/N=(size) new_Master_X, new_Master_Y
+		Make/O/N=(gLayerNum-1,5) New_Layers
+		
+		//Copying the stuff until layerindex
+		Variable i=0,j=0,mindex=0
+		if (layerindex != 0)
+			//Nothing to copy if the layer to be
+			//deleted was the first layer
+			for (i=0; i<layerindex; i+=1)
+			
+				//Copying the layers wave from the original
+				for (j=0; j<5; j += 1)
+					New_Layers[i][j] = Layers[i][j]
+				endfor
+				
+				//Copying the coordinates in the master waves:
+				for(j=Layers[i][1]; j <=Layers[i][2]; j+=1)
+					new_Master_X[mindex] = Master_XLitho[j]
+					new_Master_Y[mindex] = Master_YLitho[j]
+					mindex += 1
+				endfor
+			endfor
+		endif
+		
+		//Copying the stuff after layerindex
+		for (i=layerindex+1; i<gLayerNum; i+=1)
+		
+			//Copying the layers wave from the original
+			for (j=3; j<5; j += 1)
+				New_Layers[i-1][j] = Layers[i][j]
+			endfor
+			New_Layers[i-1][0] = Layers[i][0] - 1
+			New_Layers[i-1][1] = mindex
+		
+			//Copying the coordinates in the master waves:
+			for(j=Layers[i][1]; j <=Layers[i][2]; j+=1)
+			new_Master_X[mindex] = Master_XLitho[j]
+			new_Master_Y[mindex] = Master_YLitho[j]
+				mindex += 1
+			endfor
+			
+			New_Layers[i-1][2] = mindex-1
+			
+		endfor
+	
+		
+		// Getting rid of old waves:
+		Duplicate/O new_Master_X, Master_XLitho; KillWaves new_Master_X	
+		Duplicate/O new_Master_Y, Master_YLitho; KillWaves new_Master_Y	
+		Duplicate/O new_Layers, Layers; KillWaves new_Layers	
+	endif
+	
+	// Part 3:
+	gLayerNum -= 1
+	
+	//Part 4:
+	reWriteLayerNames()
+	
+	//Part 5:
+	refreshRender()	
+	
+	SetDataFolder dfSave
+End
+
+Function flipLayer(ctrlname) : ButtonControl
+	String ctrlname
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gFlipHoriz, gFlipVert, gSelectedLayer, gWasRedraw
+	Wave Layers, Master_XLitho, Master_YLitho
+		
+	if(gFlipHoriz == 0 && gFlipVert == 0)
+		return 0
+	Endif
+	
+	Duplicate/O Master_XLitho, old_Master_XLitho
+	Duplicate/O Master_YLitho, old_Master_YLitho
+	
+	// Finding max and min for that layer first:
+	Variable xmin = wavemin(Master_XLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+	Variable xmax = wavemax(Master_XLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+	
+	Variable i=0
+
+	if(gFlipHoriz == 1)
+	
+		for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+			Master_XLitho[i] =  xmax + xmin - Master_XLitho[i]
+		endfor
+		
+	endif
+	
+	Variable ymin = wavemin(Master_YLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+	Variable ymax = wavemax(Master_YLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+	
+	if(gFlipVert == 1)
+	
+		for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+			Master_YLitho[i] =  ymax + ymin - Master_YLitho[i]
+		endfor
+		
+	endif	
+	
+	
+	gFlipHoriz = 0
+	gFlipVert = 0
+	String ControlName = "checkfliphoriz"
+	Checkbox $ControlName, Value=gFlipHoriz
+	ControlName = "checkflipvert"
+	Checkbox $ControlName, Value=gFlipVert
+	gWasRedraw = 1
+	
+	refreshRender()	
+	
+	SetDataFolder dfSave
+	
+End
+
+Function ShiftLayer(ctrlname) : ButtonControl
+	String ctrlname
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gShiftRight, gShiftUp, gSelectedLayer, gWasRedraw
+	Wave Layers, Master_XLitho, Master_YLitho
+	
+	Variable scansize = GV("ScanSize")
+	
+	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
+	// Coordinates of the actual writing box:
+	Variable leftlimit = gLbord * 1e-9
+	Variable rightlimit = scansize - (gRbord * 1e-9)
+	Variable toplimit =scansize - (gTbord * 1e-9)
+	Variable bottomlimit =gBbord * 1e-9
+	
+	//print "gShiftUp = " + num2str(gShiftUp) + ", gShiftRight = " + num2str(gShiftRight)
+	
+	if(!gShiftUp && !gShiftRight)
+		print "ended here"
+		return 0
+	endif
+	
+	Duplicate/O Master_XLitho, old_Master_XLitho
+	Duplicate/O Master_YLitho, old_Master_YLitho
+	
+	Variable UpShift = gShiftUp * 1e-9
+	Variable RightShift = gShiftRight * 1e-9
+	
+	Variable i=0
+	
+	if(gShiftRight)
+		
+		// Finding max and min for that layer first:
+		Variable xmin = wavemin(Master_XLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+		Variable xmax = wavemax(Master_XLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+		
+		if( RightShift > 0)
+			if( RightShift > rightlimit - xmax)
+				RightShift = rightLimit - xMax
+			endif
+		else
+			if( RightShift < leftlimit - xmin)
+				RightShift = leftlimit - xmin
+			endif
+		endif
+				
+		for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+			Master_XLitho[i] +=  RightShift
+		endfor
+		
+	endif
+	
+	if(gShiftUp)
+		
+		// Finding max and min for that layer first:
+		Variable ymin = wavemin(Master_YLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+		Variable ymax = wavemax(Master_YLitho,Layers[gSelectedLayer][1],Layers[gSelectedLayer][2])
+		
+		if( UpShift > 0)
+			if( UpShift > toplimit - ymax)
+				UpShift = toplimit - ymax
+			endif
+		else
+			if( UpShift < bottomlimit - ymin)
+				UpShift = bottomlimit - ymin
+			endif
+		endif
+		
+		for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+			Master_YLitho[i] +=  UpShift
+		endfor
+		
+	endif
+	
+	//gShiftRight = 0
+	//gshiftUp = 0
+	gWasRedraw = 1
+	
+	refreshRender()	
+	
+	SetDataFolder dfSave	
+End
+
+Function rotateLayer(ctrlname) : ButtonControl
+	String ctrlname
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gRotateAngle, gSelectedLayer, gWasRedraw
+	Wave Layers, Master_XLitho, Master_YLitho
+	
+	// 1. Copy only that layer onto the MFP waves
+	// 2. Rotate waves
+	// 3. Apply scale of 1 (makes sure that the rotated image still fits although repositioned)
+	// 4. Copy contents of MFP wave onto master
+	// 5. rerender
+	
+	if(gRotateAngle == 0 || gRotateAngle == 360)
+		return 0
+	endif
+	
+	Variable angle = (pi/180)*gRotateAngle
+	
+	Duplicate/O Master_XLitho, old_Master_XLitho
+	Duplicate/O Master_YLitho, old_Master_YLitho
+	
+	//Part 1:Copy only that layer onto the MFP waves
+	Make/O/N=(Layers[gSelectedLayer][2] + 1 - Layers[gSelectedLayer][1]) root:packages:MFP3D:Litho:XLitho, root:packages:MFP3D:Litho:YLitho
+	
+	Wave mfpX = root:packages:MFP3D:Litho:XLitho
+	Wave mfpY = root:packages:MFP3D:Litho:YLitho
+	
+	Variable i
+	for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+		mfpX[(i-Layers[gSelectedLayer][1])] = Master_XLitho[i]
+		mfpY[(i-Layers[gSelectedLayer][1])] = Master_YLitho[i]
+	endfor
+	
+	//Part 2: Rotating:
+	
+	//making two duplicate waves of the same size as the MFPs:
+	Duplicate/O mfpX, oldX
+	Duplicate/O mfpY, oldY
+	
+	for(i=0; i< numpnts(mfpX); i+=1)
+		if(mfpX[i] != Nan)
+			mfpX[i] = OldX[i]*cos(angle) + OldY[i]*sin(angle)	
+			mfpY[i] =OldY[i]*cos(angle) - OldX[i]*sin(angle)	
+		endif
+	endfor
+	
+	KillWaves oldX, oldY
+	
+	//Part 3: scaling
+	scaleCurrentPattern()
+	
+	//Part 4: Copy contents of MFP back into Master
+	for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+		Master_XLitho[i] = mfpX[(i-Layers[gSelectedLayer][1])]
+		Master_YLitho[i] = mfpY[(i-Layers[gSelectedLayer][1])]
+	endfor
+	
+	gWasRedraw = 1
+	
+	//Part 5:
+	refreshRender()	
+		
+	SetDataFolder dfSave
+End
+
+Function reScaleAndPosition(ctrlname) : ButtonControl
+	String ctrlname	
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gScale
+	
+	if(gScale == 1)
+		return 0
+	endif
+	
+	backupState()
+		
+	// 1. Copy only that layer onto the MFP waves
+	// 2. Apply scale
+	// 3. Copy contents of MFP wave onto master
+	// 4. rerender
+	
+	NVAR gSelectedLayer, gWasRedraw
+	Wave Layers, Master_XLitho, Master_YLitho
+	
+	Duplicate/O Master_XLitho, old_Master_XLitho
+	Duplicate/O Master_YLitho, old_Master_YLitho
+	
+	//Part 1:Copy only that layer onto the MFP waves
+	Make/O/N=(Layers[gSelectedLayer][2] + 1 - Layers[gSelectedLayer][1]) root:packages:MFP3D:Litho:XLitho, root:packages:MFP3D:Litho:YLitho
+	
+	Wave mfpX = root:packages:MFP3D:Litho:XLitho
+	Wave mfpY = root:packages:MFP3D:Litho:YLitho
+	
+	Variable i
+	for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+		mfpX[(i-Layers[gSelectedLayer][1])] = Master_XLitho[i]
+		mfpY[(i-Layers[gSelectedLayer][1])] = Master_YLitho[i]
+	endfor
+	
+	//Part 2: scaling
+	scaleCurrentPattern()
+	
+	//Part 3: Copy contents of MFP back into Master
+	for(i=Layers[gSelectedLayer][1]; i <=Layers[gSelectedLayer][2]; i+=1)
+		Master_XLitho[i] = mfpX[(i-Layers[gSelectedLayer][1])]
+		Master_YLitho[i] = mfpY[(i-Layers[gSelectedLayer][1])]
+	endfor
+	
+	gWasRedraw = 1
+	
+	//Part 4:
+	refreshRender()	
+	
+	SetDataFolder dfSave
+	
+End
 
 Function LineDir(pa) : PopupMenuControl
 	STRUCT WMPopupAction &pa
@@ -268,8 +1025,13 @@ Function clearPattern(ctrlname) : ButtonControl
 	String ctrlname
 	// backing up the current state of the MFP waves:
 	backupState()
-
+	
+	eraseAllLayers()
+	
 	DrawLithoFunc("EraseAll")	
+	
+	updateMasterWaves(0)
+	
 End // endPattern
 
 Function savePattern(ctrlname) : ButtonControl
@@ -283,11 +1045,23 @@ Function loadPattern(ctrlname) : ButtonControl
 	// backing up the current state of the MFP waves:
 	backupState()
 	
-	//Loading the waves into the Litho waves
-	LithoGroupFunc("LoadWave")
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gLayerNum
 	
-	// Scaling and positioning
-	scaleCurrentPattern()
+	
+	//Loading the waves into the Litho waves
+	Variable retval = LithoGroupFunc("LoadWave")
+
+	if(retval != 0)
+		// Wave WAS loaded!
+		eraseAllLayers()
+		addNewLayer(0, numpnts(root:packages:MFP3D:Litho:XLitho)-1)
+		updateMasterWaves(0)
+	endif
+	
+	// Scaling, rotating, flipping and positioning
+	applySpecial()
 	
 End // loadPattern
 
@@ -314,6 +1088,13 @@ Function undoLastPattern(ctrlname) : ButtonControl
 	Duplicate/O root:packages:SmartLitho:old_XLitho, root:packages:MFP3D:Litho:XLitho
 	Duplicate/O root:packages:SmartLitho:old_YLitho, root:packages:MFP3D:Litho:YLitho
 	
+	Duplicate/O old_layers, layers
+	NVAR old_gLayernum, gLayernum
+	gLayernum = old_gLayernum
+	reWriteLayerNames()	
+	
+	updateMasterWaves(3)										
+	
 	//Lines not rendering for the first time-> Save and then load for now???
 	DrawLithoFunc("DrawWave")	
 	
@@ -331,6 +1112,11 @@ Function backupState()
 	// Make two dummy waves in the SmartLitho folder:
 	Make/O/N=1 old_XLitho
 	Make/O/N=1 old_YLitho
+	
+	Make/O/N=1 old_layers
+	Duplicate/O layers, old_layers
+	NVAR gLayernum
+	Variable/G old_gLayernum = gLayernum
 	
 	// Duplicate the MFP waves that are used for rendering
 	Duplicate/O root:packages:MFP3D:Litho:XLitho, root:packages:SmartLitho:old_XLitho
@@ -381,6 +1167,90 @@ Function SmartLithoHelp(ctrlname) : ButtonControl
 End // end of SmartLithoHelp
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////// APPLY SPECIAL ////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////
+// Applies the scaling, flipping and rotation operations
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Function applySpecial() 
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	NVAR gScale, gFlipHoriz, gFlipVert
+	
+	backupState()
+	
+	if(gscale != 1 && gScale != 0)
+		scaleCurrentPattern()
+	endif
+	
+	if(gFlipHoriz)
+		 flipHorizontal() 
+	endif
+	
+	if(gFlipVert)
+		flipVertical()
+	endif
+	
+	gflipHoriz = 0
+	gFlipVert = 0
+	String ControlName = "checkfliphoriz"
+	Checkbox $ControlName, Value=gFlipHoriz
+	ControlName = "checkflipvert"
+	Checkbox $ControlName, Value=gFlipVert
+	
+	SetDataFolder dfSave	
+	
+End // applySpecial
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////// FLIP HORIZONTAL ////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////
+// Only flips the current pattern horizontally. No scaling, movement applied
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Function flipHorizontal() 
+
+	String dfSave = GetDataFolder(1)
+	
+	SetDataFolder root:packages:MFP3D:Litho
+	
+	Wave XLitho
+	
+	Variable xmin = wavemin(XLitho)
+	Variable xmax = wavemax(XLitho)
+	
+	XLitho = xmax + xmin - XLitho
+		
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // flipHorizontal
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////// FLIP VERTICAL /////////////////////////////////////////////////////////////////
+						////////////////////////////////////////////////
+// Only flips the current pattern vertically. No scaling, movement applied
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Function flipVertical() 
+
+	String dfSave = GetDataFolder(1)
+	
+	SetDataFolder root:packages:MFP3D:Litho
+	
+	Wave YLitho
+	
+	Variable ymin = wavemin(YLitho)
+	Variable ymax = wavemax(YLitho)
+	
+	YLitho = ymax + ymin - YLitho
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // flipVertical
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////// SCALE CURRENT PATTERN ////////////////////////////////////////////////////////
 						////////////////////////////////////////////////
 // Scales and positions the present pattern in the X and Y Litho waves. Makes sure keep the image
@@ -392,8 +1262,6 @@ Function scaleCurrentPattern()
 	// Only if the rightmost and bottommost are within boundaries
 	// duplicate to actual rendering waves
 	
-	backupState()
-
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
 	
@@ -446,7 +1314,7 @@ Function scaleCurrentPattern()
 			// is taller not wider
 			gscale = (toplimit - bottomlimit) / (ymax - ymin)
 		endif
-		print "Image going out of bounds. Scale reduced to " + num2str(gscale)
+		DoAlert 0, "Image going out of bounds. Scale reduced to " + num2str(gscale)
 	endif
 	
 	// Move to bottom left
@@ -461,6 +1329,10 @@ Function scaleCurrentPattern()
 	XLitho = XLitho + leftlimit
 	Variable yoffset = (toplimit - wavemax(YLitho))
 	YLitho = YLitho + yoffset
+	
+	SetDataFolder root:packages:SmartLitho
+	NVAR gScale
+	gScale = 1
 	
 	// Resetting the data folder
 	SetDataFolder dfsave
@@ -589,20 +1461,30 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	backupState()
 	
 	// Load the new waves freshly
-	LithoGroupFunc("LoadWave")
+	Variable retval = LithoGroupFunc("LoadWave")
 	
-	// Scaling and positioning this newly added patttern ONLY
-	scaleCurrentPattern()
+	if (retval == 0)
+		// Load did not happen. Ignore rest of code:
+		return -1
+	endif
+	
+	// Scaling, rotation, flipping and positioning this newly added patttern ONLY
+	applySpecial()
 	
 	//Now appending what was earlier there in the Litho waves:
 	
 	// Storing the old working folder:
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
+	
+	addNewLayer(numpnts(master_XLitho), numpnts(root:packages:MFP3D:Litho:XLitho) + numpnts(master_XLitho)-1)
 			
 	// Appending the waves:
-	appendWaves(root:packages:MFP3D:Litho:XLitho, old_XLitho,"appendedX")
-	appendWaves(root:packages:MFP3D:Litho:YLitho, old_YLitho,"appendedY")
+	appendWaves(old_XLitho, root:packages:MFP3D:Litho:XLitho, "appendedX")
+	appendWaves(old_YLitho, root:packages:MFP3D:Litho:YLitho, "appendedY")
+	
+	// Append MFP waves to Master waves
+	updateMasterWaves(1)
 	
 	// Duplicate the right waves that are used for rendering
 	Duplicate/O root:packages:SmartLitho:appendedX, root:packages:MFP3D:Litho:XLitho
@@ -742,15 +1624,19 @@ Function appendPattern(ctrlname) : ButtonControl
 		DoAlert 0, "\t\tError!! \n\nCheck parameters, especially wrt scansize"
 		return -1;
 	endif
+	
+	addNewLayer(numpnts(master_XLitho), numpnts(master_XLitho) + numpnts(XLitho)-1)
 		
 	// Appending the waves:
 	appendWaves(root:packages:MFP3D:Litho:XLitho, XLitho,"appendedX")
 	appendWaves(root:packages:MFP3D:Litho:YLitho, YLitho,"appendedY")
 	
+	updateMasterWaves(2)
+	
 	// Duplicate the right waves that are used for rendering
 	Duplicate/O root:packages:SmartLitho:appendedX, root:packages:MFP3D:Litho:XLitho
 	Duplicate/O root:packages:SmartLitho:appendedY, root:packages:MFP3D:Litho:YLitho
-	
+
 	// Clean up:
 	KillWaves appendedX, appendedY
 	// Avoiding appending instead of overwriting
@@ -817,8 +1703,6 @@ Function drawNew(ctrlname) : ButtonControl
 		drawCurrentText()
 	endif
 	
-	
-	
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
 		// will not exist. Abort!!!
@@ -826,10 +1710,16 @@ Function drawNew(ctrlname) : ButtonControl
 		return -1;
 	endif
 	
+	eraseAllLayers()
+	
+	addNewLayer(0,numpnts(XLitho) -1)
+	
 	// Drawing completed by now:
 	// Duplicate the right waves that are used for rendering
 	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
 	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
+	
+	updateMasterWaves(0)
 	
 	// Avoiding appending instead of overwriting
 	Redimension /N=0 XLitho, YLitho
