@@ -140,34 +140,34 @@ Function drawPattern(ctrlname) : ButtonControl
 	NVAR gnumlines,glinelength,glinesp,glineangle,gTbord, gBbord, gLbord, gRbord
 	
 	// setting the scale of the variables correctly to meters:
-	glinelength = glinelength * 1e-9
-	glinesp = glinesp * 1e-9
-	gTbord = gTbord * 1e-9
-	gBbord = gBbord * 1e-9
-	gLbord = gLbord * 1e-9
-	gRbord = gRbord * 1e-9
+	Variable linelength = glinelength * 1e-9
+	Variable linesp = glinesp * 1e-9
+	Variable Tbord = gTbord * 1e-9
+	Variable Bbord = gBbord * 1e-9
+	Variable Lbord = gLbord * 1e-9
+	Variable Rbord = gRbord * 1e-9
 	
 	// Coordinates of the actual writing box:
-	Variable leftlimit = masterwave[5] + gLbord
-	Variable rightlimit = masterwave[5] + scansize - gRbord
-	Variable toplimit = masterwave[6] +scansize - gTbord
-	Variable bottomlimit = masterwave[6] + scansize
+	Variable leftlimit = masterwave[5] + Lbord
+	Variable rightlimit = masterwave[5] + scansize - Rbord
+	Variable toplimit = masterwave[6] +scansize - Tbord
+	Variable bottomlimit = masterwave[6] + Bbord
 	
 	if(leftlimit > rightlimit || toplimit < bottomlimit)
 		return -1
 	endif
 	
 	//Pass on these parameters to the actual drawing function:
-	drawLines(leftlimit,rightlimit,bottomlimit,toplimit,   gnumlines, glinelength, glineangle,glinesp)
+	drawLines(leftlimit,rightlimit,bottomlimit,toplimit,   gnumlines, linelength, glineangle,linesp)
 	
-	// resetting the scale of the variables to nanometers:
-	glinelength = glinelength * 1e+9
-	glinesp = glinesp * 1e+9
-	gTbord = gTbord * 1e+9
-	gBbord = gBbord * 1e+9
-	gLbord = gLbord * 1e+9
-	gRbord = gRbord * 1e+9
-			
+	// Drawing completed by now:
+	// Duplicate the right waves that are used for rendering
+	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
+	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
+	
+	//Lines not rendering for the first time-> Save and then load for now???
+	
+				
 End // drawPattern
 
 Function clearPattern(ctrlname) : ButtonControl
@@ -186,6 +186,18 @@ End // savePattern
 Function drawLines(xstart,xend,ystart,yend,   numlines, length, dangle,space)
 	Variable xstart, xend,ystart,yend,   numlines, length,dangle,space
 	
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	print "Drawing parameters - xstart, xend,ystart,yend,   numlines, length,dangle,space"
+	print xstart
+	print xend
+	print ystart
+	print yend
+	print numlines
+	print length
+	print dangle
+	print space
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	
 	//Convert the angle to radians:
 	Variable angle = dangle * (pi/180)
 	
@@ -194,24 +206,17 @@ Function drawLines(xstart,xend,ystart,yend,   numlines, length, dangle,space)
        	 // Writing left to right from ceiling
         	// calculate horizontal dist between lines:
         	Variable hspace = space * sin(angle)
-        	print "Come to L to R"
         	drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, hspace)
         
     	elseif ((dangle < 15 && dangle >= 0) || (dangle > 165 && dangle <= 180))
        	// Writing top to bottom on the left wall
         	// calculate vertical dist between lines:
         	Variable vspace = abs(space * cos(angle))
-        	print "come to T ot B"
         	drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, vspace)
         
     	else
         	return -1
     	endif
-    	
-    	// Duplicate the right waves that are used for rendering
-    	print numpnts(root:packages:SmartLitho:XLitho)
-	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
-	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
 End//drawLines
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
