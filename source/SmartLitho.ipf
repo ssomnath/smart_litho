@@ -1,12 +1,14 @@
 #pragma rtGlobals=1		// Use modern global access method.
 
 //Suhas Somnath, UIUC 2009
-// Comments - Cleaned up print lines, help, direction and length priorities, added space for text
-// Upcoming: rotation, duplicating, operations
-// Writing only in a certain direction - ability to change the direction
+
+// Replaced all nm references with um. 
+// Updated GUI appearance 
 
 Menu "Macros"
-	"Smart Litho", SmartLithoDriver()
+	SubMenu "UIUC Lithography"
+		"Smart Litho Art Suite", SmartLithoDriver()
+	End
 End
 
 Function SmartLithoDriver()
@@ -23,7 +25,7 @@ Function SmartLithoDriver()
 	
 	// Create global variables used by the control panel.
 	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
-	Variable scansize = mw[0]*1e+9
+	Variable scansize = mw[0]*1e+6
 	
 	// Line variables:
 	Variable numlines = NumVarOrDefault(":gnumlines", 10)
@@ -117,126 +119,149 @@ End //SmartLithoDriver
 Window SmartLithoPanel(): Panel
 
 	PauseUpdate; Silent 1		// building window...
-	NewPanel /K=1 /W=(485,145, 840,625) as "Smart Litho"
+	NewPanel /K=1 /W=(485,145, 845,695) as "Smart Litho"
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Lines"
 	TabControl tabcont, tabLabel(1)="Text"
 	TabControl tabcont, tabLabel(2)="Layers", value=root:packages:SmartLitho:gChosenTab
-	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
+	TabControl tabcont, pos={8,8}, size={345,277}, proc=TabProc
 	
-	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
+	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+6
 	//print "scan size = " + num2str(scansize)
 	//PV("ScanSize",35e-6)
-	scansize = max(20000,scansize)
+	scansize = max(20,scansize)
 	//resetting the scansize to the default size:
 	//root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0] = 20e-6
 	//print "scan size = " + num2str(scansize)
 	//Variable scansize = 20000// in nanometers
 	
-	//DrawText 17,52, "Line Parameters:"
-	SetVariable lineparams,pos={18,42},size={110,18},title="Line Parameters:", limits={0,0,0}, disable=2, noedit=1	
+	SetVariable lineparams, pos={18,42},size={0,18},title="Line Parameters:"
+	SetVariable lineparams, fSize=15,fstyle=1, limits={0,0,0}, disable=2, noedit=1	
 	
-	SetVariable setvarnumlines,pos={40,69},size={114,18},title="Number of"
+	SetVariable setvarnumlines,pos={40,72},size={114,18},title="Number of"
 	SetVariable setvarnumlines,value= root:packages:SmartLitho:gnumlines,live= 1
-	SetVariable setvarlinelength,pos={201,69},size={126,18},title="Length (nm)", limits={0,(1*scansize),1}	
-	SetVariable setvarlinelength,value= root:packages:SmartLitho:glinelength,live= 1
+	SetVariable setvarlinelength,pos={201,72},size={126,18},title="Length (um)", limits={0,(1*scansize),1}	
+	SetVariable setvarlinelength,value=root:packages:SmartLitho:glinelength,live= 1
 	
-	SetVariable setvarangle,pos={35,95},size={119,18},title="Angle (deg)", limits={0,180,1}
+	SetVariable setvarangle,pos={35,106},size={119,18},title="Angle (deg)", limits={0,180,1}
 	SetVariable setvarangle,value= root:packages:SmartLitho:glineangle,live= 1
-	SetVariable setvarlinespace,pos={192,95},size={135,18},title="Spacing (nm)", limits={0,(0.5*scansize),1}
+	SetVariable setvarlinespace,pos={192,106},size={135,18},title="Spacing (um)", limits={0,(0.5*scansize),1}
 	SetVariable setvarlinespace,value= root:packages:SmartLitho:glinesp,live= 1
 	
 	
-	SetVariable advcontrols,pos={18,128},size={110,18},title="Advanced Controls:", limits={0,0,0}, disable=2, noedit=1	
+	SetVariable advcontrols, pos={18,155},size={0,18},title="Advanced Controls:"
+	SetVariable advcontrols, fSize=15,fstyle=1, limits={0,0,0}, disable=2, noedit=1	
 	
-	Popupmenu dirpriority,pos={24,153},size={135,18},title="Direction", limits={0,(0.5*scansize),1}
+	Popupmenu dirpriority,pos={24,187},size={135,18},title="Direction", limits={0,(0.5*scansize),1}
 	Popupmenu dirpriority,value= root:packages:SmartLitho:gDirNames,live= 1, proc=LineDir
-	Popupmenu lengthpriority,pos={205,153},size={135,18},title="Length", limits={0,(0.5*scansize),1}
+	Popupmenu lengthpriority,pos={205,187},size={135,18},title="Length", limits={0,(0.5*scansize),1}
 	Popupmenu lengthpriority,value= root:packages:SmartLitho:gLengthNames,live= 1, proc=LineLength
 
 	// Tab #1: Text:
-	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:", limits={0,0,0}, disable=2, noedit=1	
+	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:"
+	SetVariable textparams, fSize=15, fstyle=1, limits={0,0,0}, disable=2, noedit=1	
 	
-	SetVariable setvartext,pos={35,69},size={160,18},title="Text:"
+	SetVariable setvartext,pos={35,78},size={291,18},title="Text:"
 	SetVariable setvartext,value= root:packages:SmartLitho:gText,live= 1
 	
-	SetVariable setvartextht,pos={35,95},size={119,18},title="Height (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextht,pos={35,115},size={119,18},title="Height (um)", limits={0,(1*scansize),1}
 	SetVariable setvartextht,value= root:packages:SmartLitho:gtextheight,live= 1
-	SetVariable setvartextwt,pos={211,95},size={116,18},title="Width (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextwt,pos={211,115},size={116,18},title="Width (um)", limits={0,(1*scansize),1}
 	SetVariable setvartextwt,value= root:packages:SmartLitho:gtextwidth,live= 1
 	
-	SetVariable setvartextsp,pos={35,125},size={119,18},title="Space (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextsp,pos={35,157},size={119,18},title="Space (um)", limits={0,(1*scansize),1}
 	SetVariable setvartextsp,value= root:packages:SmartLitho:gtextspace,live= 1
 	
 	// Tab #2: Layers:
-	Checkbox allvisiblecheck, pos = {20, 42}, size={10,10}, title="Show all", proc=ShowAllLayersCB
-	Checkbox allvisiblecheck, value= root:packages:SmartLitho:gAllShow, live=1
-	
-	Checkbox allselectcheck, pos = {150, 42}, size={10,10}, title="Select all"
-	Checkbox allselectcheck, value= root:packages:SmartLitho:gAllSelect, live=1
-	
-	Popupmenu layerselector,pos={17,72},size={135,18},title="Number", proc=LayerSelectorPM
+	Popupmenu layerselector, fstyle=1, fsize= 15, pos={18,57},size={135,18},title="Layer", proc=LayerSelectorPM
 	Popupmenu layerselector,value= root:packages:SmartLitho:gLayernames,live= 1
 	
-	Checkbox layervisiblecheck, pos={150,75},size={10,10}, title="Show", proc=showSingleLayerCB
+	Checkbox allvisiblecheck, pos = {130, 42}, size={10,10}, title="Show all", proc=ShowAllLayersCB
+	Checkbox allvisiblecheck, value= root:packages:SmartLitho:gAllShow, live=1
+	
+	Checkbox allselectcheck, pos = {241, 42}, size={10,10}, title="Select all"
+	Checkbox allselectcheck, value= root:packages:SmartLitho:gAllSelect, live=1
+	
+	Checkbox layervisiblecheck, pos={129,75},size={10,10}, title="Show", proc=showSingleLayerCB
 	Checkbox layervisiblecheck, value= root:packages:SmartLitho:gSingleShow, live=1
 	
-	Checkbox layerselectcheck, pos={220,75},size={10,10}, title="Select"
+	Checkbox layerselectcheck, pos={198,75},size={10,10}, title="Select"
 	Checkbox layerselectcheck, value= root:packages:SmartLitho:gSingleSelect, live=1
 	
-	Button buttonScaleLayer,pos={19,110},size={155,20},title="Re-Position & Re-Scale", proc=reScaleAndPosition
-	Button buttonFlipLayer,pos={196,110},size={50,20},title="Flip", proc=flipLayer
-	Button buttonDeleteLayer,pos={264,110},size={70,20},title="Delete",proc=deleteLayerButton
+	Button buttonDeleteLayer,pos={268,70},size={65,25},title="Delete",proc=deleteLayerButton
 	
-	SetVariable setvarRShift,pos={20,142},size={117,18},title="Right (nm)", limits={(-1*scansize),(1*scansize),1}
+	
+	
+	SetVariable setvarRShift,pos={18,114},size={126,18},title="Right (um)", limits={(-1*scansize),(1*scansize),1}
 	SetVariable setvarRShift,value= root:packages:SmartLitho:gShiftRight,live= 1
-	SetVariable setvarDShift,pos={150,142},size={117,18},title="Up (nm)", limits={(-1*scansize),(1*scansize),1}
-	SetVariable setvarDShift,value= root:packages:SmartLitho:gShiftUp,live= 1
-	Button buttonShiftLayer,pos={282,142},size={52,20},title="Move",proc=ShiftLayer
 	
-	Button buttonRotateLayer,pos={20,172},size={52,20},title="Rotate",proc=RotateLayer
+	SetVariable setvarDShift,pos={155,114},size={117,18},title="Up (um)", limits={(-1*scansize),(1*scansize),1}
+	SetVariable setvarDShift,value= root:packages:SmartLitho:gShiftUp,live= 1
+	
+	Button buttonShiftLayer,pos={282,114},size={52,25},title="Move",proc=ShiftLayer
+	
+	
+	
+	SetVariable setvarRotate,pos={18,160},size={160,18},title="Rotate ccw (deg)", limits={-179,180,1}
+	SetVariable setvarRotate,value= root:packages:SmartLitho:gRotateAngle,live= 1
+	
+	Button buttonRotateLayer,pos={200,160},size={60,25},title="Rotate",proc=RotateLayer
+	
+	
+	
+	SetVariable setvarScale,pos={18,201},size={91,18},title="Scale", limits={0,inf,1}
+	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
+	
+	Button buttonScaleLayer,pos={145,201},size={185,25},title="Re-Position & Re-Scale", proc=reScaleAndPosition
+	
+	
+	
+	Checkbox checkfliphoriz, pos={17,245},size={10,10}, title="Flip Horizontally", proc=FlipCB
+	Checkbox checkfliphoriz, value= root:packages:SmartLitho:gFlipHoriz, live=1
+	
+	Checkbox checkflipvert, pos={157,245},size={10,10}, title="Vertically", proc=FlipCB
+	Checkbox checkflipvert, value= root:packages:SmartLitho:gFlipVert, live=1
+	
+	Button buttonFlipLayer,pos={270,245},size={50,25},title="Flip", proc=flipLayer
+	
+	
 	
 	// Global Parameters:
-	DrawText 18,226, "Borders:"
+	SetDrawEnv fstyle= 1,fsize= 15
+	DrawText 18,310, "Borders:"
 		
-	SetVariable setvarTbord,pos={44,230},size={108,18},title="Top (nm)", limits={0,(1*scansize),1}
+	SetVariable setvarTbord,pos={44,315},size={108,18},title="Top (um)", limits={0,(1*scansize),1}
 	SetVariable setvarTbord,value= root:packages:SmartLitho:gTbord,live= 1
-	SetVariable setvarBbord,pos={203,230},size={126,18},title="Bottom (nm)", limits={0,(1*scansize),1}
+	SetVariable setvarBbord,pos={203,315},size={126,18},title="Bottom (um)", limits={0,(1*scansize),1}
 	SetVariable setvarBbord,value= root:packages:SmartLitho:gBbord,live= 1
 	
-	SetVariable setvarLbord,pos={45,258},size={106,18},title="Left (nm)", limits={0,(1*scansize),1}
+	SetVariable setvarLbord,pos={45,349},size={106,18},title="Left (um)", limits={0,(1*scansize),1}
 	SetVariable setvarLbord,value= root:packages:SmartLitho:gLbord,live= 1
-	SetVariable setvarRbord,pos={213,258},size={117,18},title="Right (nm)", limits={0,(1*scansize),1}
+	SetVariable setvarRbord,pos={213,349},size={117,18},title="Right (um)", limits={0,(1*scansize),1}
 	SetVariable setvarRbord,value= root:packages:SmartLitho:gRbord,live= 1
 	
-	SetVariable setvarRotate,pos={12,288},size={150,18},title="Rotate acc (deg)", limits={-179,180,1}
-	SetVariable setvarRotate,value= root:packages:SmartLitho:gRotateAngle,live= 1
-	SetVariable setvarScale,pos={238,288},size={91,18},title="Scale", limits={0,inf,1}
-	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
-		
-	Checkbox checkfliphoriz, pos={15,316},size={10,10}, title="Flip Horizontally", proc=FlipCB
-	Checkbox checkfliphoriz, value= root:packages:SmartLitho:gFlipHoriz, live=1
-	Checkbox checkflipvert, pos={155,316},size={10,10}, title="Vertically", proc=FlipCB
-	Checkbox checkflipvert, value= root:packages:SmartLitho:gFlipVert, live=1
-	Button buttonHelp,pos={270,316},size={56,20},title="Help", proc=SmartLithoHelp
 	
 	// Global buttons:
-	DrawText 14,360, "Pattern Functions:"
+	SetDrawEnv fstyle= 1,fsize= 15
+	DrawText 14,405, "General Functions:"
 	
-	Button buttonDrawPattern,pos={21,371},size={100,20},title="Draw New", proc=drawNew
-	Button buttonUndo,pos={142,371},size={70,20},title="Undo", proc=undoLastPattern
-	Button buttonAppendPattern,pos={234,371},size={100,20},title="Append", proc=appendPattern
+	Button buttonDrawPattern,pos={21,418},size={100,25},title="Draw New", proc=drawNew
+	Button buttonUndo,pos={142,418},size={70,25},title="Undo", proc=undoLastPattern
+	Button buttonAppendPattern,pos={234,418},size={100,25},title="Append", proc=appendPattern
 	
-	Button buttonLoadPattern,pos={21,398},size={100,20},title="Load New", proc=loadPattern
-	Button buttonClearPattern,pos={142,398},size={70,20},title="Clear", proc=clearPattern
-	Button buttonSavePattern,pos={234,398},size={100,20},title="Save", proc=savePattern
+	Button buttonLoadPattern,pos={21,454},size={100,25},title="Load New", proc=loadPattern
+	Button buttonClearPattern,pos={142,454},size={70,25},title="Clear", proc=clearPattern
+	Button buttonSavePattern,pos={234,454},size={100,25},title="Save", proc=savePattern
 	
-	Button buttonAppendSaved,pos={21,427},size={100,20},title="Append Saved", proc=addExternalPattern
-	Button buttonLoadFromDisk,pos={128,427},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
-	Button buttonSaveToDisk,pos={234,427},size={100,20},title="Save to Disk", proc=savePatternToDisk
+	Button buttonAppendSaved,pos={21,489},size={100,25},title="Append Saved", proc=addExternalPattern
+	Button buttonLoadFromDisk,pos={128,489},size={100,25},title="Load from Disk", proc=LoadWavesFromDisk
+	Button buttonSaveToDisk,pos={234,489},size={100,25},title="Save to Disk", proc=savePatternToDisk
 	
-	DrawText 177, 472, "Suhas Somnath, UIUC 2009"
+	Button buttonHelp,pos={276,7},size={74,20},title="Help", proc=SmartLithoHelp
+	
+	SetDrawEnv textrgb= (0,0,65280),fstyle= 1,fsize= 15
+	DrawText 140, 541, "Suhas Somnath, UIUC 2009"
 	
 	// Making only the tab gChosenTab things show up on startup
 	TabProc ("dummy", root:packages:SmartLitho:gChosenTab)
@@ -285,6 +310,9 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
 	//Tab 2: Layers
+	ModifyControl buttonDrawPattern disable= isTab2 // hide if not Tab 2	
+	ModifyControl buttonAppendPattern disable= isTab2 // hide if not Tab 2	
+	
 	ModifyControl allvisiblecheck disable= !isTab2 // hide if not Tab 2	
 	ModifyControl allselectcheck disable= !isTab2 // hide if not Tab 2	
 	
@@ -299,6 +327,11 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvarRShift disable= !isTab2 // hide if not Tab 2
 	ModifyControl setvarDShift disable= !isTab2 // hide if not Tab 2
 	ModifyControl buttonShiftLayer disable= !isTab2 // hide if not Tab 2
+	
+	ModifyControl setvarRotate disable= !isTab2 // hide if not Tab 2
+	ModifyControl Setvarscale disable= !isTab2 // hide if not Tab 2
+	ModifyControl checkfliphoriz disable= !isTab2 // hide if not Tab 2
+	ModifyControl checkflipvert disable= !isTab2 // hide if not Tab 2
 	
 	ModifyControl buttonRotateLayer disable= !isTab2 // hide if not Tab 2
 	
@@ -791,10 +824,10 @@ Function ShiftLayer(ctrlname) : ButtonControl
 	
 	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
 	// Coordinates of the actual writing box:
-	Variable leftlimit = gLbord * 1e-9
-	Variable rightlimit = scansize - (gRbord * 1e-9)
-	Variable toplimit =scansize - (gTbord * 1e-9)
-	Variable bottomlimit =gBbord * 1e-9
+	Variable leftlimit = gLbord * 1e-6
+	Variable rightlimit = scansize - (gRbord * 1e-6)
+	Variable toplimit =scansize - (gTbord * 1e-6)
+	Variable bottomlimit =gBbord * 1e-6
 	
 	//print "gShiftUp = " + num2str(gShiftUp) + ", gShiftRight = " + num2str(gShiftRight)
 	
@@ -806,8 +839,8 @@ Function ShiftLayer(ctrlname) : ButtonControl
 	Duplicate/O Master_XLitho, old_Master_XLitho
 	Duplicate/O Master_YLitho, old_Master_YLitho
 	
-	Variable UpShift = gShiftUp * 1e-9
-	Variable RightShift = gShiftRight * 1e-9
+	Variable UpShift = gShiftUp * 1e-6
+	Variable RightShift = gShiftRight * 1e-6
 	
 	Variable i=0
 	
@@ -1032,6 +1065,8 @@ Function clearPattern(ctrlname) : ButtonControl
 	
 	updateMasterWaves(0)
 	
+	DrawLithoFunc("StopDraw_0")
+	
 End // endPattern
 
 Function savePattern(ctrlname) : ButtonControl
@@ -1061,7 +1096,9 @@ Function loadPattern(ctrlname) : ButtonControl
 	endif
 	
 	// Scaling, rotating, flipping and positioning
-	applySpecial()
+	applySpecial(1)
+	
+	DrawLithoFunc("StopDraw_0")
 	
 End // loadPattern
 
@@ -1171,14 +1208,17 @@ End // end of SmartLithoHelp
 						////////////////////////////////////////////////
 // Applies the scaling, flipping and rotation operations
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Function applySpecial() 
+Function applySpecial(performBackup)
+	Variable performBackup 
 
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
 	
 	NVAR gScale, gFlipHoriz, gFlipVert
 	
-	backupState()
+	if(performBackup)
+		backupState()
+	endif
 	
 	if(gscale != 1 && gScale != 0)
 		scaleCurrentPattern()
@@ -1270,10 +1310,10 @@ Function scaleCurrentPattern()
 	
 	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
 	// Coordinates of the actual writing box:
-	Variable leftlimit = gLbord * 1e-9
-	Variable rightlimit = scansize - (gRbord * 1e-9)
-	Variable toplimit =scansize - (gTbord * 1e-9)
-	Variable bottomlimit =gBbord * 1e-9
+	Variable leftlimit = gLbord * 1e-6
+	Variable rightlimit = scansize - (gRbord * 1e-6)
+	Variable toplimit =scansize - (gTbord * 1e-6)
+	Variable bottomlimit =gBbord * 1e-6
 	
 	if(leftlimit > rightlimit || toplimit < bottomlimit)
 		return -1
@@ -1451,6 +1491,8 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 		readWaves(refNum,filename)
 	endif
 	setdatafolder oldSaveFolder
+	
+	DrawLithoFunc("StopDraw_0")
 End //LoadWavesFromDisk
 
 Function addExternalPattern(ctrlname) : ButtonControl
@@ -1469,7 +1511,7 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	endif
 	
 	// Scaling, rotation, flipping and positioning this newly added patttern ONLY
-	applySpecial()
+	applySpecial(0)
 	
 	//Now appending what was earlier there in the Litho waves:
 	
@@ -1502,6 +1544,8 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	// Calculating the total time to litho:
 	CalcLithoTime()
 	
+	DrawLithoFunc("StopDraw_0")
+	
 End // addExternalPattern
 
 Function drawCurrentText()
@@ -1525,15 +1569,15 @@ Function drawCurrentText()
 	Variable scansize = masterwave[0]
 	
 	// setting the scale of the variables correctly to meters:
-	Variable textheight = gtextheight * 1e-9
-	Variable textwidth = gtextwidth * 1e-9
-	Variable textspace = gtextspace * 1e-9
+	Variable textheight = gtextheight * 1e-6
+	Variable textwidth = gtextwidth * 1e-6
+	Variable textspace = gtextspace * 1e-6
 	
 	// Coordinates of the actual writing box:
-	Variable leftlimit = gLbord * 1e-9
-	Variable rightlimit = scansize - (gRbord * 1e-9)
-	Variable toplimit =scansize - (gTbord * 1e-9)
-	Variable bottomlimit =gBbord * 1e-9
+	Variable leftlimit = gLbord * 1e-6
+	Variable rightlimit = scansize - (gRbord * 1e-6)
+	Variable toplimit =scansize - (gTbord * 1e-6)
+	Variable bottomlimit =gBbord * 1e-6
 	
 	if(leftlimit > rightlimit || toplimit < bottomlimit)
 		return -1
@@ -1651,6 +1695,8 @@ Function appendPattern(ctrlname) : ButtonControl
 	// Calculating the total time to litho:
 	CalcLithoTime()
 	
+	DrawLithoFunc("StopDraw_0")
+	
 End // appendPattern
 
 Function appendWaves(wave0, wave1, outname)
@@ -1732,6 +1778,8 @@ Function drawNew(ctrlname) : ButtonControl
 	
 	SetDataFolder dfSave
 	
+	DrawLithoFunc("StopDraw_0")
+	
 End // drawFreshly
 
 Function drawCurrentLines() 
@@ -1749,14 +1797,14 @@ Function drawCurrentLines()
 	NVAR gnumlines,glinelength,glinesp,glineangle,gTbord, gBbord, gLbord, gRbord
 	
 	// setting the scale of the variables correctly to meters:
-	Variable linelength = glinelength * 1e-9
-	Variable linesp = glinesp * 1e-9
+	Variable linelength = glinelength * 1e-6
+	Variable linesp = glinesp * 1e-6
 	
 	// Coordinates of the actual writing box:
-	Variable leftlimit = gLbord * 1e-9
-	Variable rightlimit = scansize - (gRbord * 1e-9)
-	Variable toplimit =scansize - (gTbord * 1e-9)
-	Variable bottomlimit =gBbord * 1e-9
+	Variable leftlimit = gLbord * 1e-6
+	Variable rightlimit = scansize - (gRbord * 1e-6)
+	Variable toplimit =scansize - (gTbord * 1e-6)
+	Variable bottomlimit =gBbord * 1e-6
 	
 	if(leftlimit > rightlimit || toplimit < bottomlimit)
 		return -1
@@ -1801,7 +1849,7 @@ Function drawLines(xstart,xend,ystart,yend,   numlines, length, dangle,space)
         	return -1
     	endif
 End//drawLines
-	
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////Draw Left to Right ///////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -1811,69 +1859,67 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 	// Still within SmartLitho folder:
 	NVAR gLengthPriority,gDirPriority
     
-    	Variable ydecrement = abs(length * sin(angle));
+    	Variable ydecrement = abs(length * sin(angle))
+    	if(angle == pi/2)
+    		ydecrement = min(length,yend-ystart)
+    		print ydecrement
+    	endif
+    	
+    	// until now, space was the 
+    	// perpendicular distance between the lines.
+    	space = space/sin(angle) // sin(x) = sin(pi-x)
     
     	// Accounting for lines jumping outside the bottommost limit
     	if ((yend - ydecrement) < ystart)
     		// if willing to work with whatever max length is fine:
     		if(gLengthPriority == 1) 
-        		ydecrement = ystart - yend;
-        	elseif(gLengthPriority == 2) 
-        		// If very worried about exact length:
-        		DoAlert 0, "\t\tError!!\n\n\tLength prescribed > scansize. \n\tNOT drawing pattern"
-        		return -1
-        	endif
+        			ydecrement = ystart - yend;
+        		elseif(gLengthPriority == 2) 
+        			// If very worried about exact length:
+        			DoAlert 0, "\t\tError!!\n\n\tLength prescribed > scansize. \n\tNOT drawing pattern"
+        			return -1
+        		endif
     	endif
-    
-    	// Similar simple limit cannot be placed yet
-    	// x truncation must be done at time of addition
-    	// to matrix
-    	Variable xdecrement = abs(length * cos(angle));
     	
-    	// Default starting value = value for angle < 90
-    	// Accounts for the first line completely
-       // going outside the the field in case
-       // of  angles < 90:
-    	Variable xcurrent = xstart + xdecrement;
-    	    
-   	if((angle * (180/pi)) >= 90)
-   	
-   		// xcurrent can start of at its original position
-        	// for angle > 90
-        	xcurrent = xcurrent - xdecrement;
-   	
-   		// actually incrementing x for angle > 90:
-        	xdecrement = xdecrement * -1;
-        	
+    	Variable firstspace = space
+    	if(gLengthPriority == 2 || (angle > (5*pi/12) && angle < (7*pi/12)))
+    		firstspace = abs(length * cos(angle))
     	endif
-    
-    	// Check how many lines can actually be drawn with the
-    	// given gap:
+    	
+    	Variable quant1 = 1+floor((xend-(xstart+firstspace))/space));
+    	Variable lastlinecoord = firstspace + (quant1-1)*space - abs(length*cos(angle))
+    	Variable quant2 = floor(((xend-xstart)-lastlinecoord)/space)
+    	
+    	//print "Can draw  " + num2str(quant1) + " lines in first pass and " + num2str(quant2) + " in second pass"
+    	
     	Variable tempnum = numlines
-    	
-    	if(gLengthPriority == 1) 
-    		numlines = min(numlines,abs( floor( (xend - xcurrent)/space)));
-    	elseif(gLengthPriority == 2) 
-    		// A more stringent constraint set for lines that can only be 
-    		// drawn if their whole length can be drawn:    	
-    		numlines = min(numlines, abs( floor( (((xend - xstart) - abs(xdecrement)) / space)+1 )));
+    	if(gLengthPriority == 1)
+    		numlines = min(quant1+quant2,numlines)
+    	else
+    		numlines = min(quant1,numlines)
     	endif
     	
-    	if(tempnum != numlines)
-    		DoAlert 0, "\t\tWarning!\n\nNumber of lines now changed from " + num2str(tempnum) + " to "+ num2str(numlines) + "\nClick 'Undo' if not desirable"
-    	endif
+    	print "Can draw "+ num2str(numlines) + " of " + num2str(tempnum) + " requested lines"
     	
-	//Make the data holding waves
+    	//Make the data holding waves
 	Make/O/N=(numlines*3) XLitho
 	Make/O/N=(numlines*3) YLitho
+	
+	// Pass one angle and y position
+	Variable ycurrent = yend-ydecrement
+	if(angle < (pi/2))
+		angle = angle-pi;
+		ycurrent = yend		
+	endif
 	
 	//Starting the coordinates  calculation part:
 	Variable i = 0
 	// Change this variable to allow swapping of starts and ends alternating for lines:
 	
 	Variable swapstart = 0
+	Variable xcurrent = xstart+firstspace
 	
-	for (i=0; i<3*numlines; i+=3)
+	for (i=0; i<3*min(numlines,quant1); i+=3)
 	
 		// Adding intelligence to swap the start and 
 		// end points to cut down the drawing time:
@@ -1887,57 +1933,93 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 		
 		//Begin point:
 		XLitho[stpt] = xcurrent;
-        	YLitho[stpt] = yend;
-		
-		//End point:
-		if((xcurrent - xdecrement) > xend)
-	            	// This happens for angles > 90 only:
-	            	// the end point is stepping too far right
-	           	// allowable frame. Must truncate the
-	            	// end point:
-	            
-	            	// Using point slope method to determine
-	            	// ending y position:
-            		XLitho[endpt] = xend;
-         	   	YLitho[endpt] = yend + (tan(angle)* (xend-xcurrent));
-         	   	
-        	elseif ((xcurrent - xdecrement) < xstart)
-            		// This happens for angles < 90 only:
-            		// the end point is stepping too far to the left
-            		XLitho[endpt] = xstart;
-            		YLitho[endpt] = yend + (tan(angle)* (xstart-xcurrent));
-            		
-        	else
-        		// point happens to lie completely within
-        		// the box
-            		XLitho[endpt] = xcurrent - xdecrement;
-            		YLitho[endpt] = yend - ydecrement;
-            		
-        	endif
+        		YLitho[stpt] = ycurrent;
+        		
+        		//End point:
+        		// lines shooting leftward
+        		XLitho[endpt] = max(xstart, xcurrent + length*cos(angle))
+        		if(angle == pi/2)
+    			YLitho[endpt] = yend
+    		else
+    			YLitho[endpt] = tan(angle)*(XLitho[endpt]-XLitho[stpt]) + YLitho[stpt]
+    		endif
         	
-        	// Setting the swap:
-        	if (swapstart == 0 && gDirPriority == 3)
-        		swapstart = 1
-        	else
-        		swapstart = 0
-        	endif
+        		// Setting the swap:
+        		if (swapstart == 0 && gDirPriority == 3)
+        			swapstart = 1
+       	 	else
+        			swapstart = 0
+        		endif
         	
-        	//Empy space:
-        	XLitho[i+2] = nan
+        		//Empy space:
+        		XLitho[i+2] = nan
 		YLitho[i+2] = nan
 		
 		xcurrent = xcurrent + space;
-        
-         	//X position cut off:
-       	if ( xcurrent >= xend)
-       		// All possible border conditions
-       		// must have been taken care of
-       		// by now. Should not be coming
-       		// in here....just for security:
-            		break
-        	endif
+      
 	endfor
-End//drawLtoR
+	
+	if(numlines - min(numlines,quant1) == 0)
+		//print "No pass 2 requested"
+		return 0; // done here
+	endif
+	
+	// Now drawing pass #2:
+	
+	xcurrent = xcurrent + length*cos(angle)
+	
+	if(angle < 0)
+		angle = angle+pi // bring back to original
+		ycurrent = yend-ydecrement
+	else
+		// for angle > pi/2
+		ycurrent = yend
+		angle = angle-pi
+	endif
+	
+	Variable j=i
+
+	for (i=j; i<3*numlines; i+=3)
+	
+		// Adding intelligence to swap the start and 
+		// end points to cut down the drawing time:
+		stpt = i+1
+		endpt = i
+		
+		if ((swapstart == 1 && gDirPriority == 3) || gDirPriority == 2)
+			stpt = i
+			endpt = i+1
+		endif
+		
+		//Begin point:
+		XLitho[stpt] = xcurrent;
+        		YLitho[stpt] = ycurrent;
+        		
+        		//End point:
+        		// lines shooting rightward
+        		XLitho[endpt] = min(xend, xcurrent + length*cos(angle))
+        		if(angle == pi/2)
+    			YLitho[endpt] = yend-ydecrement // won't be coming here anyway.
+    		else
+    			YLitho[endpt] = tan(angle)*(XLitho[endpt]-XLitho[stpt]) + YLitho[stpt]
+    		endif
+        	
+        		// Setting the swap:
+        		if (swapstart == 0 && gDirPriority == 3)
+        			swapstart = 1
+       	 	else
+        			swapstart = 0
+        		endif
+        	
+        		//Empy space:
+        		XLitho[i+2] = nan
+		YLitho[i+2] = nan
+		
+		xcurrent = xcurrent + space;
+		
+	endfor
+	
+End //drawLtoR
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////Draw Top to Bottom ////////////////////////////////////////////////////////////////
