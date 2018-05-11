@@ -1,5 +1,8 @@
 #pragma rtGlobals=1		// Use modern global access method.
+
 //Suhas Somnath, UIUC 2009
+// Last added - TDPN exact length constraints, disabled autoswap
+// Next - variable scansize
 
 Menu "Macros"
 	"Smart Litho", SmartLithoDriver()
@@ -56,6 +59,7 @@ Window SmartLithoPanel(): Panel
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
+	scansize = max(20000,scansize)
 	//Variable scansize = 20000// in nanometers
 	
 	//DrawText 17,52, "Line Parameters:"
@@ -86,11 +90,11 @@ Window SmartLithoPanel(): Panel
 	
 	DrawText 14,231, "Pattern Functions:"
 	
-	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw Freshly", proc=drawFreshly
+	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw New", proc=drawFreshly
 	Button buttonUndo,pos={142,240},size={70,20},title="Undo", proc=undoLastPattern
 	Button buttonAppendPattern,pos={234,240},size={100,20},title="Append", proc=appendPattern
 	
-	Button buttonLoadPattern,pos={21,270},size={100,20},title="Load Freshly", proc=loadPattern
+	Button buttonLoadPattern,pos={21,270},size={100,20},title="Load New", proc=loadPattern
 	Button buttonClearPattern,pos={142,270},size={70,20},title="Clear", proc=clearPattern
 	Button buttonSavePattern,pos={234,270},size={100,20},title="Save", proc=savePattern
 	
@@ -343,15 +347,17 @@ Function drawLines(xstart,xend,ystart,yend,   numlines, length, dangle,space)
 	Variable xstart, xend,ystart,yend,   numlines, length,dangle,space
 	
 	print "-------------------------------------------------------------------------------------------------------------------------"
-	print "Drawing parameters - xstart, xend,ystart,yend,   numlines, length,dangle,space"
-	print xstart
-	print xend
-	print ystart
-	print yend
-	print numlines
-	print length
-	print dangle
-	print space
+	//print "Drawing parameters - xstart, xend,ystart,yend,   numlines, length,dangle,space"
+	//print "Drawing Parameters (meters):"
+	print "box coordinates: start : (" + num2str(xstart) + ", " + num2str(ystart) + "), end: (" + num2str(xend) + ", " + num2str(yend) + ")"
+	//print xend
+	//print ystart
+	//print yend
+	print "line parameters: " + num2str(numlines) + " lines, angle = " + num2str(dangle) + " degrees, spacing = "+ num2str(space)  + ""
+	//print numlines
+	//print length
+	//print dangle
+	//print space
 	print "-------------------------------------------------------------------------------------------------------------------------"
 	
 	//Convert the angle to radians:
@@ -381,38 +387,61 @@ End//drawLines
 Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 	Variable xstart, xend, ystart, yend, numlines, length, angle, space
 	
-	Variable xcurrent = xstart + space;
+	
     
     	Variable ydecrement = abs(length * sin(angle));
     
     	// Accounting for lines jumping outside the bottommost limit
     	if ((yend - ydecrement) < ystart)
-        	ydecrement = ystart - yend;
+    		// if willing to work with whatever max length is fine:
+        	//ydecrement = ystart - yend;
+        	
+        	// If very worried about exact length:
+        	print "Length prescribed > scansize. NOT drawing pattern"
+        	return -1
+        	
     	endif
     
     	// Similar simple limit cannot be placed yet
     	// x truncation must be done at time of addition
     	// to matrix
     	Variable xdecrement = abs(length * cos(angle));
-    
+    	
+    	// Default starting value = value for angle < 90
+    	// Accounts for the first line completely
+       // going outside the the field in case
+       // of  angles < 90:
+    	Variable xcurrent = xstart + xdecrement;
+    	    
    	if((angle * (180/pi)) >= 90)
+   	
+   		// xcurrent can start of at its original position
+        	// for angle > 90
+        	xcurrent = xcurrent - xdecrement;
+   	
+   		// actually incrementing x for angle > 90:
         	xdecrement = xdecrement * -1;
-        	// Accounts for the first line completely
-        	// going outside the the field in case
-        	// of small angles
-        	xcurrent = xcurrent - space;
+        	
     	endif
     
     	// Check how many lines can actually be drawn with the
     	// given gap:
-    	numlines = min(numlines,abs( floor( (xend - xcurrent)/space)));
-
+    	// numlines = min(numlines,abs( floor( (xend - xcurrent)/space)));
+    	
+    	// A more stringent constraint set for lines that can only be 
+    	// drawn if their whole length can be drawn:    	
+    	numlines = min(numlines, abs( floor( (((xend - xstart) - abs(xdecrement)) / space)+1 )));
+    	print "Num lines now changed to "+ num2str(numlines)
+	
 	//Make the data holding waves
 	Make/O/N=(numlines*3) XLitho
 	Make/O/N=(numlines*3) YLitho
 	
 	//Starting the coordinates  calculation part:
 	Variable i = 0
+	// Change this variable to allow swapping of starts and ends alternating for lines:
+	Variable allowswap = 0
+	
 	Variable swapstart = 0
 	
 	for (i=0; i<3*numlines; i+=3)
@@ -422,7 +451,7 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 		Variable stpt = i
 		Variable endpt = i+1
 		
-		if (swapstart == 1)
+		if (swapstart == 1 && allowswap == 1)
 			stpt = i+1
 			endpt = i
 		endif
@@ -458,10 +487,10 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
         	endif
         	
         	// Setting the swap:
-        	if (swapstart == 1)
-        		swapstart = 0
-        	else
+        	if (swapstart == 0 && allowswap == 1)
         		swapstart = 1
+        	else
+        		swapstart = 0
         	endif
         	
         	//Empy space:
@@ -486,14 +515,17 @@ End//drawLtoR
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 	Variable xstart, xend, ystart, yend, numlines, length, angle, space
-	
-	Variable ycurrent = yend - space;
-    	
+	   	
     	Variable xincrement = abs(length * cos(angle));
     	
     	// Accounting for lines jumping outside the rightmost limit
     	if((xstart + xincrement) > xend)
-        	xincrement = xend - xstart;
+        	//xincrement = xend - xstart;
+        	
+        	//more stringent requirements of EXACT line 
+        	// lengths only:
+        	print "Lines too long. Litho aborting"
+        	return -1
     	endif
     	
     	// Similar simple limit cannot be placed yet
@@ -501,18 +533,30 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
     	// to matrix
     	Variable yincrement = abs(length * sin(angle));
     	
+    	// default: angles in 1st quadrant:
+    	// step down one step:
+    	Variable ycurrent = yend - yincrement;
+    	
     	if((angle * (180/pi)) > 90 || angle == 0)
+    	
+    		//bringing back the default start y:
+    		// for 2nd quadrant angles:
+    		ycurrent = ycurrent + yincrement;
+    		
+    		// Only for angles in the III quadrant:
         	yincrement = yincrement * -1;
         	// Accounts for the first line completely
         	// going outside the the field in case
         	// of small angles
-        	ycurrent = ycurrent + space;
     	endif
     
     	// Check how many lines can actually be drawn with the
     	// given gap:
-    	numlines = min( numlines,abs( floor( (ystart - ycurrent)/space)));
-    	//sprintf('Number of lines changed to %d',numlines);
+    	//numlines = min( numlines,abs( floor( (ystart - ycurrent)/space)));
+    	
+    	// For more stringent requirements - no truncated lines may be drawn:
+    	
+    	numlines = min (numlines, floor(abs((    (     abs(ystart - yend) - abs(yincrement)    ) / space  ) + 1)))
     	
     	//Make the data holding waves
 	Make/O/N=(numlines*3) XLitho
@@ -520,6 +564,10 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 
 	//Starting the coordinates  calculation part:
 	Variable i = 0
+	
+	// Change this variable to allow swapping of starts and ends alternating for lines:
+	Variable allowswap = 0
+	
 	Variable swapstart = 0
 	
 	for (i=0; i<3*numlines; i+=3)
@@ -529,7 +577,7 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 		Variable stpt = i
 		Variable endpt = i+1
 		
-		if (swapstart == 1)
+		if (swapstart == 1 && allowswap == 1)
 			stpt = i+1
 			endpt = i
 		endif
@@ -562,10 +610,10 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
         	ycurrent = ycurrent - space;
         	
         	// Setting the swap:
-        	if (swapstart == 1)
-        		swapstart = 0
-        	else
+        	if (swapstart == 0 && allowswap == 1)
         		swapstart = 1
+        	else
+        		swapstart = 0
         	endif
         	
         	//Empy space:
