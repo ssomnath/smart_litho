@@ -55,14 +55,8 @@ Window SmartLithoPanel(): Panel
 	TabControl tabcont, tabLabel(2)="More...", value=0
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
-	//Wave masterwave = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
-	//Variable scansize = masterwave[0]
-	//String dfSave = GetDataFolder(1)
-	//SetDataFolder root:packages:SmartLitho
-	//NVAR gscansize
-	//Variable scansize = gscansize
-	//SetDataFolder dfSave
-	Variable scansize = 20000// in nanometers
+	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
+	//Variable scansize = 20000// in nanometers
 	
 	//DrawText 17,52, "Line Parameters:"
 	SetVariable lineparams,pos={18,42},size={110,18},title="Line Parameters:", limits={0,0,0}, disable=2, noedit=1	
