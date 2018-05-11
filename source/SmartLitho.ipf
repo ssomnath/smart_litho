@@ -1,7 +1,7 @@
 #pragma rtGlobals=1		// Use modern global access method.
 
 //Suhas Somnath, UIUC 2009
-// Last - Made the scan feature more global. Added a help button
+// Comments - Cleaned up print lines, help, direction and length priorities, added space for text
 
 Menu "Macros"
 	"Smart Litho", SmartLithoDriver()
@@ -34,10 +34,10 @@ Function SmartLithoDriver()
 	Variable/G glineangle = lineangle	
 	
 	// Advanced line variables:
-	Variable swapstart = NumVarOrDefault(":swapstart", 0)
-	Variable/G gswapstart = swapstart	
-	String /G gpriorityNames = "Spacing; Length"
-	Variable/G gpriorityNum = 2 // for length
+	String /G gLengthNames = "Truncate;Exact"
+	Variable/G gLengthPriority = 2 // for exact
+	String /G gDirNames = "Default;Switch All;Switch alternate"
+	Variable/G gDirPriority = 1 // for default - none
 	
 	// Border Variables:
 	Variable Tbord = NumVarOrDefault(":gTbord", (scansize/20))
@@ -59,6 +59,8 @@ Function SmartLithoDriver()
 	Variable/G gtextheight = textheight
 	Variable textwidth = NumVarOrDefault(":gtextwidth", (scansize/20))
 	Variable/G gtextwidth = textwidth
+	Variable textspace = NumVarOrDefault(":gtextspace", (scansize/40))
+	Variable/G gtextspace = textspace
 
 	// Tab variables
 	// useful in figuring out the operation on which tab was called
@@ -67,10 +69,10 @@ Function SmartLithoDriver()
 	
 	// Help String:
 	String /G gHelp = "Smart Litho Help: \n"
-	gHelp = gHelp + "Lines Tab: Advanced Controls:\n"
-	gHelp = gHelp + "1. Swap starts - swaps the start and end points of a pattern of lines in an attempt to reduce time consumed. \n"
-	gHelp = gHelp + "2. Main Priority - Spacing - Creates the requested pattern within the given window drawing truncated portions of lines that extend outside the boundaries defined\n"
-	gHelp = gHelp + "\t\tLength - Creates the same pattern but does NOT draw truncated lines\n"
+	//gHelp = gHelp + "Lines Tab: Advanced Controls:\n"
+	gHelp = gHelp + "Direction - default - left to right and top to bottom.\n"
+	gHelp = gHelp + "Length - Truncate - Truncates lines extending outside the boundaries\n"
+	gHelp = gHelp + "\t\tExact - Does NOT draw truncated lines\n"
 	gHelp = gHelp + "Draw New - erases existing pattern and draws a fresh pattern using current parameters\n"
 	gHelp = gHelp + "Undo - Goes back one step. (Warning, can only go back one step)\n"
 	gHelp = gHelp + "Append - Appends the pattern using current parameters onto the existing displayed patterns\n"
@@ -123,11 +125,11 @@ Window SmartLithoPanel(): Panel
 	
 	SetVariable advcontrols,pos={18,128},size={110,18},title="Advanced Controls:", limits={0,0,0}, disable=2, noedit=1	
 	
-	Checkbox swapstarts,pos={40,153},size={119,18},title="Swap Starts", limits={0,180,1}
-	Checkbox swapstarts,live= 1, value=root:packages:SmartLitho:gSwapStart, proc=SwapProc
-	Popupmenu mainpriority,pos={182,153},size={135,18},title="Main Priority", limits={0,(0.5*scansize),1}
-	Popupmenu mainpriority,value= root:packages:SmartLitho:gpriorityNames,live= 1, proc=PopMenuProc
-	
+	Popupmenu dirpriority,pos={24,153},size={135,18},title="Direction", limits={0,(0.5*scansize),1}
+	Popupmenu dirpriority,value= root:packages:SmartLitho:gDirNames,live= 1, proc=LineDir
+	Popupmenu lengthpriority,pos={205,153},size={135,18},title="Length", limits={0,(0.5*scansize),1}
+	Popupmenu lengthpriority,value= root:packages:SmartLitho:gLengthNames,live= 1, proc=LineLength
+
 	// Tab #1: Text:
 	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:", limits={0,0,0}, disable=2, noedit=1	
 	
@@ -138,6 +140,9 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvartextht,value= root:packages:SmartLitho:gtextheight,live= 1
 	SetVariable setvartextwt,pos={211,95},size={116,18},title="Width (nm)", limits={0,(1*scansize),1}
 	SetVariable setvartextwt,value= root:packages:SmartLitho:gtextwidth,live= 1
+	
+	SetVariable setvartextsp,pos={35,125},size={119,18},title="Space (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextsp,value= root:packages:SmartLitho:gtextspace,live= 1
 	
 	// Global Border Parameters:
 	DrawText 18,226, "Borders:"
@@ -167,9 +172,9 @@ Window SmartLithoPanel(): Panel
 	Button buttonClearPattern,pos={142,371},size={70,20},title="Clear", proc=clearPattern
 	Button buttonSavePattern,pos={234,371},size={100,20},title="Save", proc=savePattern
 	
-	Button buttonAppendSaved,pos={21,402},size={100,20},title="Append Saved", proc=addExternalPattern
-	Button buttonLoadFromDisk,pos={128,402},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
-	Button buttonSaveToDisk,pos={234,402},size={100,20},title="Save to Disk", proc=savePatternToDisk
+	Button buttonAppendSaved,pos={21,398},size={100,20},title="Append Saved", proc=addExternalPattern
+	Button buttonLoadFromDisk,pos={128,398},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
+	Button buttonSaveToDisk,pos={234,398},size={100,20},title="Save to Disk", proc=savePatternToDisk
 	
 EndMacro //SmartLithoPanel
 
@@ -204,8 +209,8 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvarangle disable= !isTab0 // hide if not Tab 0
 	
 	ModifyControl advcontrols disable= !isTab0 // hide if not Tab 1
-	ModifyControl swapstarts disable= !isTab0 // hide if not Tab 1
-	ModifyControl mainpriority disable= !isTab0 // hide if not Tab 1
+	ModifyControl dirpriority disable= !isTab0 // hide if not Tab 1
+	ModifyControl lengthpriority disable= !isTab0 // hide if not Tab 1
 	
 	//ModifyControl bordparams disable= !isTab0
 	//ModifyControl setvarLbord disable= !isTab0 // hide if not Tab 0
@@ -218,47 +223,46 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	ModifyControl setvartext disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextht disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
+	ModifyControl setvartextsp disable= !isTab1 // hide if not Tab 1
 	
 	return 0
 End // TabProc
 
-Function SwapProc(cba) : CheckBoxControl
-	STRUCT WMCheckboxAction &cba
-	
-	String dfSave = GetDataFolder(1)
-	SetDataFolder root:packages:SmartLitho
-	NVAR gSwapStart
-	
-	switch( cba.eventCode )
-		case 2: // mouse up
-			gSwapStart = cba.checked
-			//print "Checkbox checked = " + num2str(gSwapStart)
-			break
-	endswitch
-	
-	SetDataFolder dfSave
-
-	return 0
-End //SwapProc
-
-Function PopMenuProc(pa) : PopupMenuControl
+Function LineDir(pa) : PopupMenuControl
 	STRUCT WMPopupAction &pa
 
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
-	NVAR gPriorityNum
+	NVAR gDirPriority
 	
 	switch( pa.eventCode )
 		case 2: // mouse up
-			gPriorityNum = pa.popNum
-			//print "Chosen selection number = " + num2str(gPriorityNum)
+			gDirPriority = pa.popNum
+			break
+	endswitch
+	
+	SetDataFolder dfSave
+	
+End //LineDir
+
+Function LineLength(pa) : PopupMenuControl
+	STRUCT WMPopupAction &pa
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	NVAR gLengthPriority
+	
+	switch( pa.eventCode )
+		case 2: // mouse up
+			gLengthPriority = pa.popNum
+			//print "Chosen selection number = " + num2str(gLengthPriority)
 			//String popStr = pa.popStr
 			break
 	endswitch
 	
 	SetDataFolder dfSave
 	
-End //PopMenuProc
+End //LineLength
 
 Function clearPattern(ctrlname) : ButtonControl
 	String ctrlname
@@ -568,7 +572,7 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 	filename = ReplaceString(" ",filename,"_",1)
 	
 	if(cmpstr(outputPath,"")==0)
-		print "You did not choose any file!"
+		DoAlert 0, "\t\tError!!\n\n\tYou did not choose any file!"
 		return -1
 	else
 		//print "Wave name = " + filename
@@ -620,7 +624,7 @@ End // addExternalPattern
 
 Function drawCurrentText()
 	String ctrlname
-	print "drawCurrentText called!"
+	//print "drawCurrentText called!"
 	
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
@@ -630,17 +634,18 @@ Function drawCurrentText()
 	//print "global text val = " + gText
 	
 	if(strlen(gText) == 0)
-		print "Error: Nothing to write. Aborting!"
+		DoAlert 0, "\t\tError!! \n\n\tNothing to write. \n\t\tAborting!"
 		return -1
 	endif
 	
-	NVAR gtextwidth, gtextheight,gTbord, gBbord, gLbord, gRbord	
+	NVAR gtextwidth, gtextheight, gtextspace, gTbord, gBbord, gLbord, gRbord	
 	Wave masterwave = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
 	Variable scansize = masterwave[0]
 	
 	// setting the scale of the variables correctly to meters:
 	Variable textheight = gtextheight * 1e-9
 	Variable textwidth = gtextwidth * 1e-9
+	Variable textspace = gtextspace * 1e-9
 	
 	// Coordinates of the actual writing box:
 	Variable leftlimit = gLbord * 1e-9
@@ -656,15 +661,17 @@ Function drawCurrentText()
 	
 	// Number of chars that can be written in one line:
 	// Assumes space between each char is half the char width
-	Variable linelimit = (rightlimit - leftlimit) / (textwidth * 1.5)
+	Variable linelimit = (rightlimit - leftlimit) / (textwidth + textspace)
 	//print "Char limit = " + num2str(linelimit)
-	
+	if(linelimit < strlen(gText))
+		DoAlert 0, "\t\tWarning!\n\nFew characters cannot fit within boundary"
+	endif
 	linelimit = min(strlen(gText),linelimit)
 	//print "Reduced char limit = " + num2str(linelimit)
 	
-	print "---------------------------------------------------------------------------------------"
-	print "box coordinates: start : (" + num2str(leftlimit) + ", " + num2str(toplimit) + "), end: (" + num2str(rightlimit) + ", " + num2str(bottomlimit) + ")"
-	print "font stats: height = " + num2str(textheight) + ", width = " + num2str(textwidth)
+	//print "---------------------------------------------------------------------------------------"
+	//print "box coordinates: start : (" + num2str(leftlimit) + ", " + num2str(toplimit) + "), end: (" + num2str(rightlimit) + ", " + num2str(bottomlimit) + ")"
+	//print "font stats: height = " + num2str(textheight) + ", width = " + num2str(textwidth)
 	
 	Variable i = 0
 	Variable xstart = leftlimit
@@ -672,17 +679,17 @@ Function drawCurrentText()
 	for(i=0; i<linelimit; i+=1)
 		
 		//Printing stats:
-		print "Char stats: char = '" + gText[i] + "', xstart = " + num2str(xstart) + ", ystart = " + num2str(toplimit - textheight)
+		//print "Char stats: char = '" + gText[i] + "', xstart = " + num2str(xstart) + ", ystart = " + num2str(toplimit - textheight)
 		
 		// handling spaces:
 		// just move, do nothing.
 		if(cmpstr(gText[i]," ") == 0)
-			xstart = xstart + (1.5*textwidth)
+			xstart = xstart + (textspace + textwidth)
 			continue
 		endif
 	
 		drawAlphabet(Upperstr(gText[i]), xstart, (toplimit - textheight), textheight, textwidth)
-		xstart = xstart + (1.5*textwidth)
+		xstart = xstart + (textspace + textwidth)
 		
 		// Appending the waves:
 		appendWaves(XAlpha, XLitho,"appendedX")
@@ -698,7 +705,7 @@ Function drawCurrentText()
 		KillWaves appendedX, appendedY	
 	endfor
 	
-	print "---------------------------------------------------------------------------------------"	
+	//print "---------------------------------------------------------------------------------------"	
 	
 	SetDataFolder dfSave
 	
@@ -732,7 +739,7 @@ Function appendPattern(ctrlname) : ButtonControl
 	if( exists("XLitho") != 1 || exists("YLitho") != 1)
 		// If the litho was not performed at all such waves
 		// will not exist. Abort!!!
-		print "Error: Check parameters, especially wrt scansize"
+		DoAlert 0, "\t\tError!! \n\nCheck parameters, especially wrt scansize"
 		return -1;
 	endif
 		
@@ -803,10 +810,10 @@ Function drawNew(ctrlname) : ButtonControl
 	NVAR gChosenTab
 	
 	if(gChosenTab == 0)
-		print "Calling currentLines"
+		//print "Calling currentLines"
 		drawCurrentLines()
 	elseif(gChosenTab == 1)
-		print "Calling currentText"
+		//print "Calling currentText"
 		drawCurrentText()
 	endif
 	
@@ -839,7 +846,7 @@ End // drawFreshly
 
 Function drawCurrentLines() 
 
-	print "drawCurrentLines called"
+	//print "drawCurrentLines called"
 
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
@@ -879,19 +886,10 @@ End // drawPattern
 Function drawLines(xstart,xend,ystart,yend,   numlines, length, dangle,space)
 	Variable xstart, xend,ystart,yend,   numlines, length,dangle,space
 	
-	print "-------------------------------------------------------------------------------------------------------------------------"
-	//print "Drawing parameters - xstart, xend,ystart,yend,   numlines, length,dangle,space"
-	//print "Drawing Parameters (meters):"
-	print "box coordinates: start : (" + num2str(xstart) + ", " + num2str(ystart) + "), end: (" + num2str(xend) + ", " + num2str(yend) + ")"
-	//print xend
-	//print ystart
-	//print yend
-	print "line parameters: " + num2str(numlines) + " lines, angle = " + num2str(dangle) + " degrees, spacing = "+ num2str(space)  + ""
-	//print numlines
-	//print length
-	//print dangle
-	//print space
-	print "-------------------------------------------------------------------------------------------------------------------------"
+	//print "-------------------------------------------------------------------------------------------------------------------------"
+	//print "box coordinates: start : (" + num2str(xstart) + ", " + num2str(ystart) + "), end: (" + num2str(xend) + ", " + num2str(yend) + ")"
+	//print "line parameters: " + num2str(numlines) + " lines, angle = " + num2str(dangle) + " degrees, spacing = "+ num2str(space)  + ""
+	//print "-------------------------------------------------------------------------------------------------------------------------"
 	
 	//Convert the angle to radians:
 	Variable angle = dangle * (pi/180)
@@ -921,18 +919,18 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 	Variable xstart, xend, ystart, yend, numlines, length, angle, space
 	
 	// Still within SmartLitho folder:
-	NVAR gPriorityNum,gSwapStart
+	NVAR gLengthPriority,gDirPriority
     
     	Variable ydecrement = abs(length * sin(angle));
     
     	// Accounting for lines jumping outside the bottommost limit
     	if ((yend - ydecrement) < ystart)
     		// if willing to work with whatever max length is fine:
-    		if(gPriorityNum == 1) 
+    		if(gLengthPriority == 1) 
         		ydecrement = ystart - yend;
-        	elseif(gPriorityNum == 2) 
+        	elseif(gLengthPriority == 2) 
         		// If very worried about exact length:
-        		print "Length prescribed > scansize. NOT drawing pattern"
+        		DoAlert 0, "\t\tError!!\n\n\tLength prescribed > scansize. \n\tNOT drawing pattern"
         		return -1
         	endif
     	endif
@@ -961,13 +959,18 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
     
     	// Check how many lines can actually be drawn with the
     	// given gap:
-    	if(gPriorityNum == 1) 
+    	Variable tempnum = numlines
+    	
+    	if(gLengthPriority == 1) 
     		numlines = min(numlines,abs( floor( (xend - xcurrent)/space)));
-    	elseif(gPriorityNum == 2) 
+    	elseif(gLengthPriority == 2) 
     		// A more stringent constraint set for lines that can only be 
     		// drawn if their whole length can be drawn:    	
     		numlines = min(numlines, abs( floor( (((xend - xstart) - abs(xdecrement)) / space)+1 )));
-    		print "Num lines now changed to "+ num2str(numlines)
+    	endif
+    	
+    	if(tempnum != numlines)
+    		DoAlert 0, "\t\tWarning!\n\nNumber of lines now changed from " + num2str(tempnum) + " to "+ num2str(numlines) + "\nClick 'Undo' if not desirable"
     	endif
     	
 	//Make the data holding waves
@@ -987,7 +990,7 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 		Variable stpt = i
 		Variable endpt = i+1
 		
-		if (swapstart == 1 && gSwapStart == 1)
+		if ((swapstart == 1 && gDirPriority == 3) || gDirPriority == 2)
 			stpt = i+1
 			endpt = i
 		endif
@@ -1023,7 +1026,7 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
         	endif
         	
         	// Setting the swap:
-        	if (swapstart == 0 && gSwapStart == 1)
+        	if (swapstart == 0 && gDirPriority == 3)
         		swapstart = 1
         	else
         		swapstart = 0
@@ -1055,17 +1058,17 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
     	Variable xincrement = abs(length * cos(angle));
     	
     	// Still within SmartLitho folder:
-	NVAR gPriorityNum,gSwapStart
+	NVAR gLengthPriority,gDirPriority
     	
     	// Accounting for lines jumping outside the rightmost limit
     	if((xstart + xincrement) > xend)
         	// if willing to work with whatever max length is fine:
-    		if(gPriorityNum == 1) 
+    		if(gLengthPriority == 1) 
         		xincrement = xend - xstart;
-        	elseif(gPriorityNum == 2) 
+        	elseif(gLengthPriority == 2) 
         		//more stringent requirements of EXACT line 
         		// lengths only:
-        		print "Lines too long. Litho aborting"
+        		DoAlert 0, "\t\tError!!\n\n\tLines too long. \n\tLitho aborting"
         		return -1
         	endif
     	endif
@@ -1094,12 +1097,18 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
     
     	// Check how many lines can actually be drawn with the
     	// given gap:
-    	if(gPriorityNum == 1) 
+    	Variable tempnum = numlines
+    	
+    	if(gLengthPriority == 1) 
     		//allowing truncation of lines:
     		numlines = min( numlines,abs( floor( (ystart - ycurrent)/space)));
-    	elseif(gPriorityNum == 2) 
+    	elseif(gLengthPriority == 2) 
     		// For more stringent requirements - no truncated lines may be drawn:
     	    	numlines = min (numlines, floor(abs((    (     abs(ystart - yend) - abs(yincrement)    ) / space  ) + 1)))
+    	endif
+    	
+    	if(tempnum != numlines)
+    		DoAlert 0, "\t\tWarning!\n\nNumber of lines now changed from " + num2str(tempnum) + " to "+ num2str(numlines) + "\nClick 'Undo' if not desirable"
     	endif
     	
     	//Make the data holding waves
@@ -1118,7 +1127,7 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 		Variable stpt = i
 		Variable endpt = i+1
 		
-		if (swapstart == 1 && gSwapStart == 1)
+		if ((swapstart == 1 && gDirPriority == 3) || gDirPriority == 2)
 			stpt = i+1
 			endpt = i
 		endif
@@ -1151,7 +1160,7 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
         	ycurrent = ycurrent - space;
         	
         	// Setting the swap:
-        	if (swapstart == 0 && gSwapStart == 1)
+        	if (swapstart == 0 && gDirPriority == 3)
         		swapstart = 1
         	else
         		swapstart = 0
