@@ -47,13 +47,13 @@ End //SmartLithoDriver
 Window SmartLithoPanel(): Panel
 
 	PauseUpdate; Silent 1		// building window...
-	NewPanel /K=1 /W=(485,145, 840,385) as "Smart Litho"
+	NewPanel /K=1 /W=(485,145, 840,445) as "Smart Litho"
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Layers", value=0
 	TabControl tabcont, tabLabel(1)="Lines"
-	TabControl tabcont, tabLabel(2)="Squares", value=0
-	TabControl tabcont, pos={5,5}, size={345,202}, proc=TabProc
+	TabControl tabcont, tabLabel(2)="More...", value=0
+	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	//Wave masterwave = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
 	//Variable scansize = masterwave[0]
@@ -64,7 +64,8 @@ Window SmartLithoPanel(): Panel
 	//SetDataFolder dfSave
 	Variable scansize = 20000// in nanometers
 	
-	DrawText 17,52, "Line Parameters:"
+	//DrawText 17,52, "Line Parameters:"
+	SetVariable lineparams,pos={18,42},size={110,18},title="Line Parameters:", limits={0,0,0}, disable=2, noedit=1	
 	
 	SetVariable setvarnumlines,pos={40,69},size={114,18},title="Number of"
 	SetVariable setvarnumlines,value= root:packages:SmartLitho:gnumlines,live= 1
@@ -76,7 +77,8 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarlinespace,pos={192,95},size={135,18},title="Spacing (nm)", limits={0,(0.5*scansize),1}
 	SetVariable setvarlinespace,value= root:packages:SmartLitho:glinesp,live= 1
 	
-	DrawText 18,146, "Borders:"
+	//DrawText 18,146, "Borders:"
+	SetVariable bordparams,pos={18,128},size={110,18},title="Border Parameters:", limits={0,0,0}, disable=2, noedit=1
 	
 	SetVariable setvarTbord,pos={44,153},size={108,18},title="Top (nm)", limits={0,(1*scansize),1}
 	SetVariable setvarTbord,value= root:packages:SmartLitho:gTbord,live= 1
@@ -88,9 +90,15 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarRbord,pos={213,178},size={117,18},title="Right (nm)", limits={0,(1*scansize),1}
 	SetVariable setvarRbord,value= root:packages:SmartLitho:gRbord,live= 1
 	
-	Button buttonDrawPattern,pos={14,214},size={100,20},title="Draw Pattern", proc=drawPattern
-	Button buttonClearPattern,pos={143,214},size={70,20},title="Clear", proc=clearPattern
-	Button buttonSavePattern,pos={238,214},size={100,20},title="Save Pattern", proc=savePattern
+	DrawText 14,231, "Pattern Functions:"
+	
+	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw Freshly", proc=drawFreshly
+	Button buttonUndo,pos={142,240},size={70,20},title="Undo", proc=undoLastPattern
+	Button buttonAppendPattern,pos={234,240},size={100,20},title="Append", proc=appendPattern
+	
+	Button buttonLoadPattern,pos={21,270},size={100,20},title="Load Freshly", proc=loadPattern
+	Button buttonClearPattern,pos={142,270},size={70,20},title="Clear", proc=clearPattern
+	Button buttonSavePattern,pos={234,270},size={100,20},title="Save", proc=savePattern
 	
 EndMacro //SmartLithoPanel
 
@@ -108,6 +116,9 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	// http://wavemetrics.net/doc/III-14 Control Panels.pdf
 	
 	//Tab 1: Lines
+	ModifyControl lineparams disable= !isTab1
+	ModifyControl bordparams disable= !isTab1
+	
 	ModifyControl setvarnumlines disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvarlinelength disable= !isTab1 // hide if not Tab 1
 	ModifyControl setvarlinespace disable= !isTab1 // hide if not Tab 1
@@ -126,8 +137,174 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	return 0
 End // TabProc
 
-Function drawPattern(ctrlname) : ButtonControl
+Function clearPattern(ctrlname) : ButtonControl
 	String ctrlname
+	// backing up the current state of the MFP waves:
+	backupState()
+	
+	DrawLithoFunc("EraseAll")	
+End // endPattern
+
+Function savePattern(ctrlname) : ButtonControl
+	String ctrlname	
+	LithoGroupFunc("SaveWave")
+End // savePattern
+
+Function loadPattern(ctrlname) : ButtonControl
+	String ctrlname
+	
+	// backing up the current state of the MFP waves:
+	backupState()
+	
+	LithoGroupFunc("LoadWave")
+End // savePattern
+
+Function undoLastPattern(ctrlname) : ButtonControl
+	String ctrlname
+	
+	// Pretty much doing the reverse of what is done in 
+	// backupState:
+	
+	// Storing the old working folder:
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+		
+	// Duplicate the MFP waves that are used for rendering:
+	// Will assume that the old_Litho waves exist becuase before any drawing / loading is
+	// done, the backupState() function MUST be called
+	Duplicate/O root:packages:SmartLitho:old_XLitho, root:packages:MFP3D:Litho:XLitho
+	Duplicate/O root:packages:SmartLitho:old_YLitho, root:packages:MFP3D:Litho:YLitho
+	
+	//Lines not rendering for the first time-> Save and then load for now???
+	DrawLithoFunc("DrawWave")	
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // savePattern
+
+Function backupState()
+	
+	// Storing the old working folder:
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	// Make two dummy waves in the SmartLitho folder:
+	Make/O/N=1 old_XLitho
+	Make/O/N=1 old_YLitho
+	
+	// Duplicate the MFP waves that are used for rendering
+	Duplicate/O root:packages:MFP3D:Litho:XLitho, root:packages:SmartLitho:old_XLitho
+	Duplicate/O root:packages:MFP3D:Litho:YLitho, root:packages:SmartLitho:old_YLitho
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // backupState
+
+Function addExternalPattern(ctrlname) : ButtonControl
+	String ctrlname
+	// This must borrow heavily from the Load function
+	// However it is one step more complicated as it must:
+	// 1. Take a backup of the previous state of the XLitho, YLitho
+	// 2. Find the waves to load using the Load's code
+	// 3. Append the current XLitho, YLitho with these waves.
+End // addExternalPattern
+
+Function appendPattern(ctrlname) : ButtonControl
+	String ctrlname
+	// Needs to go one step beyond just the fresh draw
+	// 1. take a backup of the current XLitho, YLitho
+	// 2. instead of duplicating the SmartLitho waves of the
+	// 	current form, need to append to the Litho waves
+	
+	// backing up the current state of the MFP waves:
+	backupState()
+	
+	// Storing the old working folder:
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	// Drawing this NEW pattern onto the home Litho waves.
+	// but NOT rendering it yet.
+	drawCurrentPattern()
+		
+	// Appending the waves:
+	appendWaves(root:packages:MFP3D:Litho:XLitho, XLitho,"appendedX")
+	appendWaves(root:packages:MFP3D:Litho:YLitho, YLitho,"appendedY")
+	
+	// Duplicate the right waves that are used for rendering
+	Duplicate/O root:packages:SmartLitho:appendedX, root:packages:MFP3D:Litho:XLitho
+	Duplicate/O root:packages:SmartLitho:appendedY, root:packages:MFP3D:Litho:YLitho
+	
+	// Clean up:
+	KillWaves appendedX, appendedY
+	
+	// restoring directory structure:
+	SetDataFolder dfSave
+	
+	//Lines not rendering for the first time-> Save and then load for now???
+	DrawLithoFunc("DrawWave")	
+	
+	// Calculating the total time to litho:
+	CalcLithoTime()
+	
+End // appendPattern
+
+Function appendWaves(wave0, wave1, outname)
+	Wave wave0, wave1
+	String outname
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+
+	// Not interefering with wave0's stuff
+	Duplicate/O wave0, $outname
+	
+	// Providing a handle now
+	Wave wave2 = $outname
+	
+	// Resize it to hold both waves' stuff
+	Redimension /N=(numpnts(wave0)+numpnts(wave1)) wave2
+	Variable len0 = numpnts(wave0)
+	Variable len1 = numpnts(wave1)
+	
+	// Use DimSize(wavename, property) to get more information about the wave
+	//print DimSize(wave0,0)
+	
+	Variable i=0
+	for(i=len0; i<len0+len1; i+=1)
+		wave2[i] = wave1[i-len0]
+	endfor
+	
+	SetDataFolder dfSave
+	
+	//return wave2
+End
+
+
+Function drawFreshly(ctrlname) : ButtonControl
+	String ctrlname
+	
+	// backing up the current state of the MFP waves:
+	backupState()
+	
+	drawCurrentPattern()
+	
+	// Drawing completed by now:
+	// Duplicate the right waves that are used for rendering
+	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
+	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
+	
+	//Lines not rendering for the first time-> Save and then load for now???
+	DrawLithoFunc("DrawWave")	
+	
+	// Calculating the total time to litho:
+	CalcLithoTime()
+	
+End // drawFreshly
+
+Function drawCurrentPattern() 
 
 	String dfSave = GetDataFolder(1)
 	SetDataFolder root:packages:SmartLitho
@@ -160,25 +337,10 @@ Function drawPattern(ctrlname) : ButtonControl
 	//Pass on these parameters to the actual drawing function:
 	drawLines(leftlimit,rightlimit,bottomlimit,toplimit,   gnumlines, linelength, glineangle,linesp)
 	
-	// Drawing completed by now:
-	// Duplicate the right waves that are used for rendering
-	Duplicate/O root:packages:SmartLitho:XLitho, root:packages:MFP3D:Litho:XLitho
-	Duplicate/O root:packages:SmartLitho:YLitho, root:packages:MFP3D:Litho:YLitho
-	
-	//Lines not rendering for the first time-> Save and then load for now???
-	
+	// Resetting the data folder
+	SetDataFolder dfsave
 				
 End // drawPattern
-
-Function clearPattern(ctrlname) : ButtonControl
-	String ctrlname
-	LithoGroupFunc("KillGroup_0")
-End // endPattern
-
-Function savePattern(ctrlname) : ButtonControl
-	String ctrlname
-	LithoGroupFunc("SaveWave")
-End // savePattern
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////  Main Draw Lines ///////////////////////////////////////////////////////////////////
@@ -257,10 +419,23 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 	
 	//Starting the coordinates  calculation part:
 	Variable i = 0
+	Variable swapstart = 0
+	
 	for (i=0; i<3*numlines; i+=3)
+	
+		// Adding intelligence to swap the start and 
+		// end points to cut down the drawing time:
+		Variable stpt = i
+		Variable endpt = i+1
+		
+		if (swapstart == 1)
+			stpt = i+1
+			endpt = i
+		endif
+		
 		//Begin point:
-		XLitho[i] = xcurrent;
-        	YLitho[i] = yend;
+		XLitho[stpt] = xcurrent;
+        	YLitho[stpt] = yend;
 		
 		//End point:
 		if((xcurrent - xdecrement) > xend)
@@ -271,21 +446,28 @@ Function drawLtoR(xstart, xend, ystart, yend, numlines, length, angle, space)
 	            
 	            	// Using point slope method to determine
 	            	// ending y position:
-            		XLitho[i+1] = xend;
-         	   	YLitho[i+1] = yend + (tan(angle)* (xend-xcurrent));
+            		XLitho[endpt] = xend;
+         	   	YLitho[endpt] = yend + (tan(angle)* (xend-xcurrent));
          	   	
         	elseif ((xcurrent - xdecrement) < xstart)
             		// This happens for angles < 90 only:
             		// the end point is stepping too far to the left
-            		XLitho[i+1] = xstart;
-            		YLitho[i+1] = yend + (tan(angle)* (xstart-xcurrent));
+            		XLitho[endpt] = xstart;
+            		YLitho[endpt] = yend + (tan(angle)* (xstart-xcurrent));
             		
         	else
         		// point happens to lie completely within
         		// the box
-            		XLitho[i+1] = xcurrent - xdecrement;
-            		YLitho[i+1] = yend - ydecrement;
+            		XLitho[endpt] = xcurrent - xdecrement;
+            		YLitho[endpt] = yend - ydecrement;
             		
+        	endif
+        	
+        	// Setting the swap:
+        	if (swapstart == 1)
+        		swapstart = 0
+        	else
+        		swapstart = 1
         	endif
         	
         	//Empy space:
@@ -344,11 +526,25 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 
 	//Starting the coordinates  calculation part:
 	Variable i = 0
+	Variable swapstart = 0
+	
 	for (i=0; i<3*numlines; i+=3)
 	
-        	XLitho[i] = xstart;
-        	YLitho[i] = ycurrent;
+		// Adding intelligence to swap the start and 
+		// end points to cut down the drawing time:
+		Variable stpt = i
+		Variable endpt = i+1
+		
+		if (swapstart == 1)
+			stpt = i+1
+			endpt = i
+		endif
+	
+		// Begin point
+        	XLitho[stpt] = xstart;
+        	YLitho[stpt] = ycurrent;
             
+            // End point
         	if((yincrement + ycurrent) < ystart)
             		// This happens for angles > 165 only:
             		// the end point is dipping below the
@@ -357,19 +553,26 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
             
             		// Using point slope method to determine
             		// ending x position:
-            		XLitho[i+1] = ((ystart - ycurrent)/tan(angle)) + xstart;
-            		YLitho[i+1] = ystart;
+            		XLitho[endpt] = ((ystart - ycurrent)/tan(angle)) + xstart;
+            		YLitho[endpt] = ystart;
         	elseif (yincrement + ycurrent > yend)
             		// This happens for angles <15 only:
             		// The end point is above the top limit
-            		XLitho[i+1] = ((yend - ycurrent)/tan(angle)) + xstart;
-            		YLitho[i+1] = yend;
+            		XLitho[endpt] = ((yend - ycurrent)/tan(angle)) + xstart;
+            		YLitho[endpt] = yend;
         	else
-            		XLitho[i+1] = xstart + xincrement;
-            		YLitho[i+1] = ycurrent + yincrement;
+            		XLitho[endpt] = xstart + xincrement;
+            		YLitho[endpt] = ycurrent + yincrement;
         	endif
            
         	ycurrent = ycurrent - space;
+        	
+        	// Setting the swap:
+        	if (swapstart == 1)
+        		swapstart = 0
+        	else
+        		swapstart = 1
+        	endif
         	
         	//Empy space:
         	XLitho[i+2] = nan
@@ -384,7 +587,7 @@ Function drawTtoB(xstart, xend, ystart, yend, numlines, length, angle, space)
 End//drawToB
 
 // Note: 
-// Waves are stored in root:packages:MFP3D:Litho:Ymywavename, Xmywavename
+// Waves are stored in root:packages:MFP3D:Litho:LithoWaves:Ymywavename, Xmywavename
 // Currently MFP allows loading and saving of SINGLE patterns ONLY
 // LithoGroupFunc("SaveWave")
 // LithoGroupFunc("LoadWave")
