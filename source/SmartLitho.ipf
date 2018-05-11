@@ -1,7 +1,7 @@
 #pragma rtGlobals=1		// Use modern global access method.
 
 //Suhas Somnath, UIUC 2009
-// Last - variable scansize, handled non written waves XLitho..- null pointer exception, removed the layers panel
+// Last - Made the scan feature more global. Added a help button
 
 Menu "Macros"
 	"Smart Litho", SmartLithoDriver()
@@ -64,6 +64,23 @@ Function SmartLithoDriver()
 	// useful in figuring out the operation on which tab was called
 	Variable ChosenTab = NumVarOrDefault(":gChosenTab",0)
 	Variable/G gChosenTab = ChosenTab
+	
+	// Help String:
+	String /G gHelp = "Smart Litho Help: \n"
+	gHelp = gHelp + "Lines Tab: Advanced Controls:\n"
+	gHelp = gHelp + "1. Swap starts - swaps the start and end points of a pattern of lines in an attempt to reduce time consumed. \n"
+	gHelp = gHelp + "2. Main Priority - Spacing - Creates the requested pattern within the given window drawing truncated portions of lines that extend outside the boundaries defined\n"
+	gHelp = gHelp + "\t\tLength - Creates the same pattern but does NOT draw truncated lines\n"
+	gHelp = gHelp + "Draw New - erases existing pattern and draws a fresh pattern using current parameters\n"
+	gHelp = gHelp + "Undo - Goes back one step. (Warning, can only go back one step)\n"
+	gHelp = gHelp + "Append - Appends the pattern using current parameters onto the existing displayed patterns\n"
+	gHelp = gHelp + "Load new - Loads a previously saved pattern erasing currently drawn patterns from memory\n"
+	gHelp = gHelp + "Clear - Deletes all displayed patterns\n"
+	gHelp = gHelp + "Save - Saves the currently displayed pattern to memory(s)\n"
+	gHelp = gHelp + "Append Saved - Same as Load new, except, does not erase currently displayed patterns\n"
+	gHelp = gHelp + "Load from Disk - Reads a txt file from disk and saves it to memory. Must hit Load new or Append Saved to view pattern.\n"
+	gHelp = gHelp + "Save to Disk - Saves currently displayed pattern to disk as a txt file\n"
+	gHelp = gHelp + "Note: Scaling is NOT applied to Append and Draw New operations."
 	
 	// Create the control panel.
 	Execute "SmartLithoPanel()"
@@ -135,108 +152,26 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarRbord,pos={213,258},size={117,18},title="Right (nm)", limits={0,(1*scansize),1}
 	SetVariable setvarRbord,value= root:packages:SmartLitho:gRbord,live= 1
 	
-	// Global buttons:
-	DrawText 14,305, "Pattern Functions:"
-	
-	Button buttonDrawPattern,pos={21,317},size={100,20},title="Draw New", proc=drawNew
-	Button buttonUndo,pos={142,317},size={70,20},title="Undo", proc=undoLastPattern
-	Button buttonAppendPattern,pos={234,317},size={100,20},title="Append", proc=appendPattern
-	
-	Button buttonLoadPattern,pos={21,344},size={100,20},title="Load New", proc=loadPattern
-	Button buttonClearPattern,pos={142,344},size={70,20},title="Clear", proc=clearPattern
-	Button buttonSavePattern,pos={234,344},size={100,20},title="Save", proc=savePattern
-	
-	Button buttonAppendSaved,pos={21,371},size={100,20},title="Append Saved", proc=addExternalPattern
-	Button buttonLoadFromDisk,pos={128,371},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
-	Button buttonSaveToDisk,pos={234,371},size={100,20},title="Save to Disk", proc=savePatternToDisk
-	
-	SetVariable setvarScale,pos={15,402},size={163,18},title="Scaling multiplier", limits={0,inf,1}
+	SetVariable setvarScale,pos={15,286},size={102,18},title="Scale", limits={0,inf,1}
 	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
-	Button buttonScale,pos={216,401},size={116,20},title="Scale Up / Down", proc=scalePattern
+	Button buttonScale,pos={231,291},size={100,20},title="Help", proc=SmartLithoHelp
+	
+	// Global buttons:
+	DrawText 14,331, "Pattern Functions:"
+	
+	Button buttonDrawPattern,pos={21,344},size={100,20},title="Draw New", proc=drawNew
+	Button buttonUndo,pos={142,344},size={70,20},title="Undo", proc=undoLastPattern
+	Button buttonAppendPattern,pos={234,344},size={100,20},title="Append", proc=appendPattern
+	
+	Button buttonLoadPattern,pos={21,371},size={100,20},title="Load New", proc=loadPattern
+	Button buttonClearPattern,pos={142,371},size={70,20},title="Clear", proc=clearPattern
+	Button buttonSavePattern,pos={234,371},size={100,20},title="Save", proc=savePattern
+	
+	Button buttonAppendSaved,pos={21,402},size={100,20},title="Append Saved", proc=addExternalPattern
+	Button buttonLoadFromDisk,pos={128,402},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
+	Button buttonSaveToDisk,pos={234,402},size={100,20},title="Save to Disk", proc=savePatternToDisk
 	
 EndMacro //SmartLithoPanel
-
-Function scalePattern(ctrlname) : ButtonControl
-	String ctrlname
-	
-	// Use temporary waves to see if everything is within limits
-	// Only if the rightmost and bottommost are within boundaries
-	// duplicate to actual rendering waves
-	
-	backupState()
-
-	String dfSave = GetDataFolder(1)
-	SetDataFolder root:packages:SmartLitho
-	
-	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
-	Variable scansize = mw[0]
-	
-	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
-	// Coordinates of the actual writing box:
-	Variable leftlimit = gLbord * 1e-9
-	Variable rightlimit = scansize - (gRbord * 1e-9)
-	Variable toplimit =scansize - (gTbord * 1e-9)
-	Variable bottomlimit =gBbord * 1e-9
-	
-	if(leftlimit > rightlimit || toplimit < bottomlimit)
-		return -1
-	endif
-	
-	SetDataFolder root:packages:MFP3D:Litho
-	
-	Wave XLitho, YLitho
-	
-	// use the borders to move it automatically
-	// Also use the borders to limit the maximum scale
-	// to fit the borders
-	Variable xmin = wavemin(XLitho)
-	Variable ymin = wavemin(YLitho)
-	Variable xmax = wavemax(XLitho)
-	Variable ymax = wavemax(YLitho)
-	
-	Variable isWider = (rightlimit - leftlimit < gscale * (xmax - xmin))
-	Variable isTaller = (toplimit - bottomlimit < gscale * (ymax - ymin))
-	
-	//print "is Wider  = " + num2str(isWider) + ", is taller = " + num2str(isTaller)
-	//print num2str(rightlimit - leftlimit) + " <- box size. After scale size -> " + num2str(gscale * (xmax - xmin))
-	
-	if(isWider || isTaller)
-		if(isWider && isTaller)
-			// Simply too large in both axes
-			if( xmax - xmin > ymax - ymin)
-				// wider than taller => gscale from horizontal size
-				gscale = (rightlimit - leftlimit) / (xmax - xmin)
-			else
-				// taller than wider => gscale from vertical size
-				gscale = (toplimit - bottomlimit) / (ymax - ymin)
-			endif
-		elseif(isWider && !isTaller)
-			// is wider but not taller.
-			gscale = (rightlimit - leftlimit) / (xmax - xmin)
-		elseif(isTaller && !isWider)
-			// is taller not wider
-			gscale = (toplimit - bottomlimit) / (ymax - ymin)
-		endif
-		print "Image going out of bounds. Scale reduced to " + num2str(gscale)
-	endif
-	
-	// Move to bottom left
-	XLitho = XLitho - xmin
-	YLitho = YLitho - ymin
-	
-	// Scale up safely
-	XLitho = XLitho * gscale
-	YLitho = YLitho * gscale
-	
-	// Move to top left within borders
-	XLitho = XLitho + leftlimit
-	Variable yoffset = (toplimit - wavemax(YLitho))
-	YLitho = YLitho + yoffset
-	
-	// Resetting the data folder
-	SetDataFolder dfsave
-	
-End // UndoLastPattern
 
 Function TabProc (ctrlName, tabNum) : TabControl
 	String ctrlName
@@ -344,7 +279,12 @@ Function loadPattern(ctrlname) : ButtonControl
 	// backing up the current state of the MFP waves:
 	backupState()
 	
+	//Loading the waves into the Litho waves
 	LithoGroupFunc("LoadWave")
+	
+	// Scaling and positioning
+	scaleCurrentPattern()
+	
 End // loadPattern
 
 Function undoLastPattern(ctrlname) : ButtonControl
@@ -413,6 +353,115 @@ Function savePatternToDisk(ctrlname) : ButtonControl
 	killwaves wavelength
 	setdatafolder oldSaveFolder
 End //SaveWavesToDisk
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////// SMART LITHO HELP /////////////////////////////////////////////////////////////
+							///////////////////////////////////////
+// Makes an alert pop up with the help information string.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Function SmartLithoHelp(ctrlname) : ButtonControl
+	String ctrlname
+	
+	//Dont know yet how to open up an ihf file
+	// for right now, make do with an alert
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	SVAR gHelp
+	
+	DoAlert 0, gHelp
+		
+	SetDataFolder dfSave
+	
+End // end of SmartLithoHelp
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////// SCALE CURRENT PATTERN ////////////////////////////////////////////////////////
+						////////////////////////////////////////////////
+// Scales and positions the present pattern in the X and Y Litho waves. Makes sure keep the image
+// within the borders prescribed keeping the original aspect ratio intact
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Function scaleCurrentPattern() 
+	
+	// Use temporary waves to see if everything is within limits
+	// Only if the rightmost and bottommost are within boundaries
+	// duplicate to actual rendering waves
+	
+	backupState()
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
+	Variable scansize = mw[0]
+	
+	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
+	// Coordinates of the actual writing box:
+	Variable leftlimit = gLbord * 1e-9
+	Variable rightlimit = scansize - (gRbord * 1e-9)
+	Variable toplimit =scansize - (gTbord * 1e-9)
+	Variable bottomlimit =gBbord * 1e-9
+	
+	if(leftlimit > rightlimit || toplimit < bottomlimit)
+		return -1
+	endif
+	
+	SetDataFolder root:packages:MFP3D:Litho
+	
+	Wave XLitho, YLitho
+	
+	// use the borders to move it automatically
+	// Also use the borders to limit the maximum scale
+	// to fit the borders
+	Variable xmin = wavemin(XLitho)
+	Variable ymin = wavemin(YLitho)
+	Variable xmax = wavemax(XLitho)
+	Variable ymax = wavemax(YLitho)
+	
+	Variable isWider = (rightlimit - leftlimit < gscale * (xmax - xmin))
+	Variable isTaller = (toplimit - bottomlimit < gscale * (ymax - ymin))
+	
+	//print "is Wider  = " + num2str(isWider) + ", is taller = " + num2str(isTaller)
+	//print num2str(rightlimit - leftlimit) + " <- box size. After scale size -> " + num2str(gscale * (xmax - xmin))
+	
+	if(isWider || isTaller)
+		if(isWider && isTaller)
+			// Simply too large in both axes
+			if( xmax - xmin > ymax - ymin)
+				// wider than taller => gscale from horizontal size
+				gscale = (rightlimit - leftlimit) / (xmax - xmin)
+			else
+				// taller than wider => gscale from vertical size
+				gscale = (toplimit - bottomlimit) / (ymax - ymin)
+			endif
+		elseif(isWider && !isTaller)
+			// is wider but not taller.
+			gscale = (rightlimit - leftlimit) / (xmax - xmin)
+		elseif(isTaller && !isWider)
+			// is taller not wider
+			gscale = (toplimit - bottomlimit) / (ymax - ymin)
+		endif
+		print "Image going out of bounds. Scale reduced to " + num2str(gscale)
+	endif
+	
+	// Move to bottom left
+	XLitho = XLitho - xmin
+	YLitho = YLitho - ymin
+	
+	// Scale up safely
+	XLitho = XLitho * gscale
+	YLitho = YLitho * gscale
+	
+	// Move to top left within borders
+	XLitho = XLitho + leftlimit
+	Variable yoffset = (toplimit - wavemax(YLitho))
+	YLitho = YLitho + yoffset
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // scaleCurrentPattern
 
 Function readWaves(filePointer,name)
 	Variable filePointer
@@ -522,7 +571,7 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 		print "You did not choose any file!"
 		return -1
 	else
-		print "Wave name = " + filename
+		//print "Wave name = " + filename
 		readWaves(refNum,filename)
 	endif
 	setdatafolder oldSaveFolder
@@ -537,6 +586,9 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	
 	// Load the new waves freshly
 	LithoGroupFunc("LoadWave")
+	
+	// Scaling and positioning this newly added patttern ONLY
+	scaleCurrentPattern()
 	
 	//Now appending what was earlier there in the Litho waves:
 	
