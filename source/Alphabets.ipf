@@ -1138,8 +1138,8 @@ Function drawAlphabet(alphabet, xstart, ystart, height, width)
 		// Line 4
 		XAlpha[9] = Xpoints[0]
 		YAlpha[9] = Ypoints[0]
-		XAlpha[10] = Xpoints[0]
-		YAlpha[10] = Ypoints[6]
+		XAlpha[10] = Xpoints[6]
+		YAlpha[10] = Ypoints[0]
 		XAlpha[11] = nan
 		YAlpha[11] = nan
 
@@ -1502,45 +1502,31 @@ Function drawAlphabet(alphabet, xstart, ystart, height, width)
 		// Line 1
 		XAlpha[0] = Xpoints[4]
 		YAlpha[0] = Ypoints[3]
-		XAlpha[1] = Xpoints[1]
+		XAlpha[1] = Xpoints[0]
 		YAlpha[1] = Ypoints[3]
 		XAlpha[2] = nan
 		YAlpha[2] = nan
 		// Line 2
-		XAlpha[3] = Xpoints[1]
-		YAlpha[3] = Ypoints[3]
+		XAlpha[3] = Xpoints[0]
+		YAlpha[3] = Ypoints[4]
 		XAlpha[4] = Xpoints[0]
-		YAlpha[4] = Ypoints[4]
+		YAlpha[4] = Ypoints[6]
 		XAlpha[5] = nan
 		YAlpha[5] = nan
 		// Line 3
 		XAlpha[6] = Xpoints[0]
-		YAlpha[6] = Ypoints[4]
-		XAlpha[7] = Xpoints[0]
-		YAlpha[7] = Ypoints[5]
+		YAlpha[6] = Ypoints[6]
+		XAlpha[7] = Xpoints[4]
+		YAlpha[7] = Ypoints[6]
 		XAlpha[8] = nan
 		YAlpha[8] = nan
 		// Line 4
-		XAlpha[9] = Xpoints[0]
-		YAlpha[9] = Ypoints[5]
-		XAlpha[10] = Xpoints[1]
-		YAlpha[10] = Ypoints[6]
+		XAlpha[9] = Xpoints[4]
+		YAlpha[9] = Ypoints[6]
+		XAlpha[10] = Xpoints[4]
+		YAlpha[10] = Ypoints[0]
 		XAlpha[11] = nan
 		YAlpha[11] = nan
-		// Line 5
-		XAlpha[12] = Xpoints[1]
-		YAlpha[12] = Ypoints[6]
-		XAlpha[13] = Xpoints[4]
-		YAlpha[13] = Ypoints[6]
-		XAlpha[14] = nan
-		YAlpha[14] = nan
-		// Line 6
-		XAlpha[15] = Xpoints[4]
-		YAlpha[15] = Ypoints[6]
-		XAlpha[16] = Xpoints[4]
-		YAlpha[16] = Ypoints[0]
-		XAlpha[17] = nan
-		YAlpha[17] = nan
 
 	elseif(cmpstr(alphabet,"0") == 0)
 		numlines = 8
