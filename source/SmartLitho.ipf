@@ -23,6 +23,7 @@ Function SmartLithoDriver()
 	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
 	Variable scansize = mw[0]*1e+9
 	
+	// Line variables:
 	Variable numlines = NumVarOrDefault(":gnumlines", 10)
 	Variable/G gnumlines = numlines
 	Variable linelength = NumVarOrDefault(":glinelength", (scansize/4))
@@ -31,6 +32,8 @@ Function SmartLithoDriver()
 	Variable/G glinesp = linesp
 	Variable lineangle = NumVarOrDefault(":glineangle", 90)
 	Variable/G glineangle = lineangle	
+	
+	// Border Variables:
 	Variable Tbord = NumVarOrDefault(":gTbord", (scansize/20))
 	Variable/G gTbord = Tbord
 	Variable Bbord = NumVarOrDefault(":gBbord", (scansize/20))
@@ -39,6 +42,13 @@ Function SmartLithoDriver()
 	Variable/G gLbord = Lbord
 	Variable Rbord = NumVarOrDefault(":gRbord", (scansize/20))
 	Variable/G gRbord = Rbord
+	
+	// Text variables:
+	String /G gText = ""
+	Variable textheight = NumVarOrDefault(":gtextheight", (scansize/20))
+	Variable/G gtextheight = textheight
+	Variable textwidth = NumVarOrDefault(":gtextwidth", (scansize/20))
+	Variable/G gtextwidth = textwidth
 	
 	// Create the control panel.
 	Execute "SmartLithoPanel()"
@@ -54,7 +64,7 @@ Window SmartLithoPanel(): Panel
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Lines"
-	TabControl tabcont, tabLabel(1)="More...", value=0
+	TabControl tabcont, tabLabel(1)="Text", value=0
 	TabControl tabcont, pos={5,5}, size={345,200}, proc=TabProc
 	
 	Variable scansize = root:Packages:MFP3D:Main:Variables:MasterVariablesWave[0]*1e+9
@@ -91,6 +101,22 @@ Window SmartLithoPanel(): Panel
 	SetVariable setvarRbord,pos={213,178},size={117,18},title="Right (nm)", limits={0,(1*scansize),1}
 	SetVariable setvarRbord,value= root:packages:SmartLitho:gRbord,live= 1
 	
+	
+	
+	// Tab #1: Text:
+	SetVariable textparams,pos={18,42},size={110,18},title="Text Parameters:", limits={0,0,0}, disable=2, noedit=1	
+	
+	SetVariable setvartext,pos={35,69},size={120,18},title="Text:"
+	SetVariable setvartext,value= root:packages:SmartLitho:gText,live= 1
+	
+	SetVariable setvartextht,pos={35,95},size={119,18},title="Height (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextht,value= root:packages:SmartLitho:gtextheight,live= 1
+	SetVariable setvartextwt,pos={211,95},size={116,18},title="Width (nm)", limits={0,(1*scansize),1}
+	SetVariable setvartextwt,value= root:packages:SmartLitho:gtextwidth,live= 1
+	
+	Button buttontext, pos={226,68}, size={100,20}, title = "Draw Text!", proc=drawString
+	
+	// Global buttons:
 	DrawText 14,231, "Pattern Functions:"
 	
 	Button buttonDrawPattern,pos={21,240},size={100,20},title="Draw New", proc=drawNew
@@ -117,17 +143,23 @@ Function TabProc (ctrlName, tabNum) : TabControl
 	
 	//Tab 0: Lines
 	ModifyControl lineparams disable= !isTab0
-	ModifyControl bordparams disable= !isTab0
-	
 	ModifyControl setvarnumlines disable= !isTab0 // hide if not Tab0
 	ModifyControl setvarlinelength disable= !isTab0 // hide if not Tab 0
 	ModifyControl setvarlinespace disable= !isTab0 // hide if not Tab 0
 	ModifyControl setvarangle disable= !isTab0 // hide if not Tab 0
 	
-	ModifyControl setvarLbord disable= !isTab0 // hide if not Tab 0
-	ModifyControl setvarRbord disable= !isTab0 // hide if not Tab 0
-	ModifyControl setvarTbord disable= !isTab0 // hide if not Tab 0
-	ModifyControl setvarBbord disable= !isTab0 // hide if not Tab 0
+	//ModifyControl bordparams disable= !isTab0
+	//ModifyControl setvarLbord disable= !isTab0 // hide if not Tab 0
+	//ModifyControl setvarRbord disable= !isTab0 // hide if not Tab 0
+	//ModifyControl setvarTbord disable= !isTab0 // hide if not Tab 0
+	//ModifyControl setvarBbord disable= !isTab0 // hide if not Tab 0
+	
+	//Tab 1: Text:
+	ModifyControl textparams disable= !isTab1 // hide if not Tab 1
+	ModifyControl buttontext disable = !isTab1 // hide if not Tab 1
+	ModifyControl setvartext disable= !isTab1 // hide if not Tab 1
+	ModifyControl setvartextht disable= !isTab1 // hide if not Tab 1
+	ModifyControl setvartextwt disable= !isTab1 // hide if not Tab 1
 	
 	return 0
 End // TabProc
@@ -212,6 +244,93 @@ Function addExternalPattern(ctrlname) : ButtonControl
 	// 2. Find the waves to load using the Load's code
 	// 3. Append the current XLitho, YLitho with these waves.
 End // addExternalPattern
+
+Function drawString(ctrlname) : ButtonControl
+	String ctrlname
+	
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+		
+	SVAR gText
+	//gText = ReplaceString(" ",gText,"_",1)		//fight the users urge to use spaces.
+	//print "global text val = " + gText
+	
+	if(strlen(gText) == 0)
+		print "Error: Nothing to write. Aborting!"
+		return -1
+	endif
+	
+	NVAR gtextwidth, gtextheight,gTbord, gBbord, gLbord, gRbord	
+	Wave masterwave = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
+	Variable scansize = masterwave[0]
+	
+	// setting the scale of the variables correctly to meters:
+	Variable textheight = gtextheight * 1e-9
+	Variable textwidth = gtextwidth * 1e-9
+	Variable Tbord = gTbord * 1e-9
+	Variable Bbord = gBbord * 1e-9
+	Variable Lbord = gLbord * 1e-9
+	Variable Rbord = gRbord * 1e-9
+	
+	// Coordinates of the actual writing box:
+	Variable leftlimit = masterwave[5] + Lbord
+	Variable rightlimit = masterwave[5] + scansize - Rbord
+	Variable toplimit = masterwave[6] +scansize - Tbord
+	Variable bottomlimit = masterwave[6] + Bbord
+	
+	if(leftlimit > rightlimit || toplimit < bottomlimit)
+		return -1
+	endif
+	
+	// Backing up state:
+	backupState()
+	
+	// Number of chars that can be written in one line:
+	// Assumes space between each char is half the char width
+	Variable linelimit = (rightlimit - leftlimit) / (textwidth * 1.5)
+	//print "Char limit = " + num2str(linelimit)
+	
+	linelimit = min(strlen(gText),linelimit)
+	//print "Reduced char limit = " + num2str(linelimit)
+	
+	print "---------------------------------------------------------------------------------------"
+	print "box coordinates: start : (" + num2str(leftlimit) + ", " + num2str(toplimit) + "), end: (" + num2str(rightlimit) + ", " + num2str(bottomlimit) + ")"
+	print "font stats: height = " + num2str(textheight) + ", width = " + num2str(textwidth)
+	
+	Variable i = 0
+	Variable xstart = leftlimit
+	
+	for(i=0; i<linelimit; i+=1)
+		
+		//Printing stats:
+		print "Char stats: char = '" + gText[i] + "', xstart = " + num2str(xstart) + ", ystart = " + num2str(toplimit - textheight)
+	
+		drawAlphabet(Upperstr(gText[i]), xstart, (toplimit - textheight), textheight, textwidth)
+		xstart = xstart + (1.5*textwidth)
+		
+		// Appending the waves:
+		appendWaves(root:packages:MFP3D:Litho:XLitho, XLitho,"appendedX")
+		appendWaves(root:packages:MFP3D:Litho:YLitho, YLitho,"appendedY")
+	
+		// Duplicate the right waves that are used for rendering
+		Duplicate/O root:packages:SmartLitho:appendedX, root:packages:MFP3D:Litho:XLitho
+		Duplicate/O root:packages:SmartLitho:appendedY, root:packages:MFP3D:Litho:YLitho
+	
+		// Clean up:
+		KillWaves appendedX, appendedY
+		
+		//Lines not rendering for the first time-> Save and then load for now???
+		DrawLithoFunc("DrawWave")	
+	endfor
+	
+	print "---------------------------------------------------------------------------------------"	
+	
+	// Calculating the total time to litho:
+	CalcLithoTime()
+	
+	SetDataFolder dfSave
+	
+End // drawString
 
 Function appendPattern(ctrlname) : ButtonControl
 	String ctrlname
