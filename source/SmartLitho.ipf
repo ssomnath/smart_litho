@@ -49,6 +49,10 @@ Function SmartLithoDriver()
 	Variable Rbord = NumVarOrDefault(":gRbord", (scansize/20))
 	Variable/G gRbord = Rbord
 	
+	// Scaling Variable:
+	Variable scale = NumVarOrDefault(":gScale", 1)
+	Variable/G gScale = scale
+	
 	// Text variables:
 	String /G gText = ""
 	Variable textheight = NumVarOrDefault(":gtextheight", (scansize/20))
@@ -71,7 +75,7 @@ End //SmartLithoDriver
 Window SmartLithoPanel(): Panel
 
 	PauseUpdate; Silent 1		// building window...
-	NewPanel /K=1 /W=(485,145, 840,545) as "Smart Litho"
+	NewPanel /K=1 /W=(485,145, 840,570) as "Smart Litho"
 	SetDrawLayer UserBack
 	
 	TabControl tabcont, tabLabel(0)="Lines"
@@ -146,7 +150,93 @@ Window SmartLithoPanel(): Panel
 	Button buttonLoadFromDisk,pos={128,371},size={100,20},title="Load from Disk", proc=LoadWavesFromDisk
 	Button buttonSaveToDisk,pos={234,371},size={100,20},title="Save to Disk", proc=savePatternToDisk
 	
+	SetVariable setvarScale,pos={15,402},size={163,18},title="Scaling multiplier", limits={0,inf,1}
+	SetVariable setvarScale,value= root:packages:SmartLitho:gScale,live= 1
+	Button buttonScale,pos={216,401},size={116,20},title="Scale Up / Down", proc=scalePattern
+	
 EndMacro //SmartLithoPanel
+
+Function scalePattern(ctrlname) : ButtonControl
+	String ctrlname
+	
+	// Use temporary waves to see if everything is within limits
+	// Only if the rightmost and bottommost are within boundaries
+	// duplicate to actual rendering waves
+	
+	backupState()
+
+	String dfSave = GetDataFolder(1)
+	SetDataFolder root:packages:SmartLitho
+	
+	Wave mw = root:Packages:MFP3D:Main:Variables:MasterVariablesWave
+	Variable scansize = mw[0]
+	
+	NVAR gScale, gTbord, gBbord, gLbord, gRbord	
+	// Coordinates of the actual writing box:
+	Variable leftlimit = gLbord * 1e-9
+	Variable rightlimit = scansize - (gRbord * 1e-9)
+	Variable toplimit =scansize - (gTbord * 1e-9)
+	Variable bottomlimit =gBbord * 1e-9
+	
+	if(leftlimit > rightlimit || toplimit < bottomlimit)
+		return -1
+	endif
+	
+	SetDataFolder root:packages:MFP3D:Litho
+	
+	Wave XLitho, YLitho
+	
+	// use the borders to move it automatically
+	// Also use the borders to limit the maximum scale
+	// to fit the borders
+	Variable xmin = wavemin(XLitho)
+	Variable ymin = wavemin(YLitho)
+	Variable xmax = wavemax(XLitho)
+	Variable ymax = wavemax(YLitho)
+	
+	Variable isWider = (rightlimit - leftlimit < gscale * (xmax - xmin))
+	Variable isTaller = (toplimit - bottomlimit < gscale * (ymax - ymin))
+	
+	//print "is Wider  = " + num2str(isWider) + ", is taller = " + num2str(isTaller)
+	//print num2str(rightlimit - leftlimit) + " <- box size. After scale size -> " + num2str(gscale * (xmax - xmin))
+	
+	if(isWider || isTaller)
+		if(isWider && isTaller)
+			// Simply too large in both axes
+			if( xmax - xmin > ymax - ymin)
+				// wider than taller => gscale from horizontal size
+				gscale = (rightlimit - leftlimit) / (xmax - xmin)
+			else
+				// taller than wider => gscale from vertical size
+				gscale = (toplimit - bottomlimit) / (ymax - ymin)
+			endif
+		elseif(isWider && !isTaller)
+			// is wider but not taller.
+			gscale = (rightlimit - leftlimit) / (xmax - xmin)
+		elseif(isTaller && !isWider)
+			// is taller not wider
+			gscale = (toplimit - bottomlimit) / (ymax - ymin)
+		endif
+		print "Image going out of bounds. Scale reduced to " + num2str(gscale)
+	endif
+	
+	// Move to bottom left
+	XLitho = XLitho - xmin
+	YLitho = YLitho - ymin
+	
+	// Scale up safely
+	XLitho = XLitho * gscale
+	YLitho = YLitho * gscale
+	
+	// Move to top left within borders
+	XLitho = XLitho + leftlimit
+	Variable yoffset = (toplimit - wavemax(YLitho))
+	YLitho = YLitho + yoffset
+	
+	// Resetting the data folder
+	SetDataFolder dfsave
+	
+End // UndoLastPattern
 
 Function TabProc (ctrlName, tabNum) : TabControl
 	String ctrlName
@@ -255,7 +345,7 @@ Function loadPattern(ctrlname) : ButtonControl
 	backupState()
 	
 	LithoGroupFunc("LoadWave")
-End // savePattern
+End // loadPattern
 
 Function undoLastPattern(ctrlname) : ButtonControl
 	String ctrlname
@@ -286,7 +376,7 @@ Function undoLastPattern(ctrlname) : ButtonControl
 	// Resetting the data folder
 	SetDataFolder dfsave
 	
-End // savePattern
+End // UndoLastPattern
 
 Function backupState()
 	
@@ -323,12 +413,6 @@ Function savePatternToDisk(ctrlname) : ButtonControl
 	killwaves wavelength
 	setdatafolder oldSaveFolder
 End //SaveWavesToDisk
-
-
-
-
-
-
 
 Function readWaves(filePointer,name)
 	Variable filePointer
@@ -379,6 +463,7 @@ Function readWaves(filePointer,name)
 	for (i=1; i<wavesize; i= i+1)
 		FReadLine filePointer, str
 		sscanf str, "%s\t%s", tempx, tempy
+		//print "line " + num2str(i) + ">> x = " + tempx + ", y = " + tempy
 		tempx = ReplaceString(" ",tempx,"",1)
 		tempy = ReplaceString(" ",tempy,"",1)
 		if(cmpstr(tempx,"")==0)
@@ -425,12 +510,10 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 	
 	
 	//Lets extract the pattern's name from its filename
-	Variable i=0
 	String filename = outputpath
-	Variable enditer = ItemsInList(filename,":")-1
-	for (i=0; i< enditer;i = i+1)
-		filename = RemoveListItem(0,filename,":")
-	endfor
+	Variable enditer = FindLast(filename,":")
+	filename = filename[enditer+1,strlen(filename)-1]
+	//removing the .txt
 	filename = RemoveEnding(filename , ".TXT")	
 	//We cant allow any spaces within the wave's name:
 	filename = ReplaceString(" ",filename,"_",1)
@@ -439,6 +522,7 @@ Function LoadWavesFromDisk(ctrlname): ButtonControl
 		print "You did not choose any file!"
 		return -1
 	else
+		print "Wave name = " + filename
 		readWaves(refNum,filename)
 	endif
 	setdatafolder oldSaveFolder
