@@ -26,7 +26,11 @@ This ``Smart Litho`` suite offers basic vector graphics capabilities that are / 
 As an analogy, ``Smart Litho`` is like Microsoft Powerpoint or Adobe Illustrator or Inkscape while ``Microangelo`` is like
 Microsoft Paint. The following sections will illustrate this point.
 
-Note that this software was written from 2009 - 2011 and it may or may not work now.
+Journal papers using this software
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Somnath, Suhas, Hoe Joon Kim, Huan Hu, and William P. King. "Parallel nanoimaging and nanolithography using a heated microcantilever array." Nanotechnology 25, no. 1 (2013): 014001.
+
+**Disclaimer** : Note that this software was written from 2009 - 2011 and it may or may not work now.
 
 Installing
 -----------
